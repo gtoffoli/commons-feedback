@@ -5,54 +5,87 @@ from django.http import JsonResponse
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
+from django.template.defaultfilters import slugify
 from django.contrib.auth.models import User
 from schedule.models import Event, CalendarRelation
 from commons.models import Project
 from commons.tracking import track_action
+from commons.utils import unshuffle_integers
+from .producers import feedback_item_producer, feedback_dashboard_producer
 
-def index(request):
-    return render(request, 'feedback/index.html')
 
-def room(request, room_name):
-    return render(request, 'feedback/room.html', {
+def room_select(request):
+    return render(request, 'feedback/room_select.html')
+
+def chat_room(request, room_name):
+    return render(request, 'feedback/chat_room.html', {
         'room_name': room_name
     })
 
+def feedback_log(request, event_code):
+    event_id, user_id = unshuffle_integers(event_code)
+    assert request.user.id == user_id
+    event_name = 'event_{}'.format(event_id)
+    events = Event.objects.filter(id=event_id)
+    if not events:
+        pass
+    else:
+        event = events[0]
+        return render(request, 'feedback/feedback_log.html', {
+            'event_name': event_name,
+            'event_title': event.title
+        })
+
 @csrf_exempt
-def get(request):
+def feedback_process(request):
     """ Gets and processes real-time user feedback from mobile app in xAPI compatible format.
         user_id: the id of a registered user
         event_id: the id of an Event in a django-schedule Calendar associated to a Project or Community
     """
-    assert request.method == 'POST'
-    data = json.loads(request.body.decode('utf-8'))
-    user_id = data['user_id']
+    if request.method == 'POST':
+        data = json.loads(request.body.decode('utf-8'))
+        event_code = data['event_code']
+        feedback = data['feedback']
+    else:
+        event_code = request.GET.get('event_code', '')
+        feedback = request.GET.get('feedback', 'unknown')
+    event_id, user_id = unshuffle_integers(event_code)
     users = User.objects.filter(id=user_id)
     if not users:
-        text = 'user is unknown'
+        message = 'user is unknown'
     else:
         actor = users[0]
         verb = 'feedback'
-        event_id = data['event_id']
         events = Event.objects.filter(id=event_id)
         if not events:
-            text = 'event is unknown'
+            message = 'event is unknown'
         else:
             event = events[0]
+            """
             now = timezone.now()
             if now < event.start or now > event.end:
-                text = 'event {} is not running'.format(event.title)
+                message = 'event {} is not running'.format(event.title)
             else:
+            """
+            if True:
                 calendar = event.calendar
                 relations = CalendarRelation.objects.filter(calendar=calendar)
                 project_id = relations[0].object_id
                 project = Project.objects.get(id=project_id)
-                feedback = data['feedback']
-                text = 'feedback {} from {} event {} in project {}'.format(feedback, actor.get_display_name(), event.title, project.name)
+                message = 'feedback {} from {} event "{}" in project {}'.format(feedback, actor.get_display_name(), event.title, project.name)
                 if project.is_member(actor):
                     track_action(request, actor, verb, event, target=project)
                 else:
-                    text += ' '+'but user {} is not member of community/project {}'.format(actor.get_display_name(), project.name)
-    print(text)
-    data = {'text': text}
+                    message += ' '+'but user {} is not member of community/project {}'.format(actor.get_display_name(), project.name)
+                # push line to all raw feedback visualizers
+                event_name = 'event_{}'.format(event_id)
+                group_name = 'feedback_{}'.format(event_name)
+                feedback_item_producer(group_name, message)
+    data = {'text': message, 'group_name': group_name}
     return JsonResponse(data)
+
+# https://stackoverflow.com/questions/70159895/django-send-events-via-websocket-to-all-clients
+# https://stackoverflow.com/questions/54572288/django-channels-group-send-not-working-properly
+# https://stackoverflow.com/questions/63693032/django-channels-get-the-current-channel
+# https://stackoverflow.com/questions/51083910/integrating-a-data-producer-as-worker-to-django-channels-2-x
+# https://channels.readthedocs.io/en/stable/topics/channel_layers.html

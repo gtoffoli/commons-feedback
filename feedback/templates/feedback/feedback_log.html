@@ -1,0 +1,29 @@
+<!-- feedback/templates/feedback/event_log.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <title>Raw Event Feedback</title>
+</head>
+<body>
+    <h3>Raw feedback messages log for event <i>{{ event_title }}</i></h3>
+    <textarea id="event-log" cols="100" rows="20"></textarea><br>
+    <script>
+        if (window.location.protocol == 'https:') {
+          wsProtocol = 'wss://'
+        } else {
+          wsProtocol = 'ws://'
+        }
+        eventSocket = new WebSocket(wsProtocol + window.location.host + '/ws/event/{{ event_name }}/');
+
+        eventSocket.onmessage = function(e) {
+            const data = JSON.parse(e.data);
+            document.querySelector('#event-log').value += (data.message + '\n');
+        };
+
+        eventSocket.onclose = function(e) {
+            console.error('Event socket closed unexpectedly');
+        };
+    </script>
+</body>
+</html>

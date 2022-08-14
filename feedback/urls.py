@@ -4,7 +4,8 @@ from django.urls import path
 from feedback import views
 
 urlpatterns = [
-    path('', views.index, name='index'),
-    path('<str:room_name>/', views.room, name='room'),
-    path('get', views.get, name="get_feedback"),
+    path('log/<str:event_code>/', views.feedback_log, name='feedback_log'),
+    path('process/', views.feedback_process, name="feedback_process"),
+    path('room_select/', views.room_select, name='room_select'),
+    path('<str:room_name>/', views.chat_room, name='chat_room'),
 ]
