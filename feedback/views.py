@@ -24,7 +24,7 @@ def chat_room(request, room_name):
 
 def feedback_log(request, event_code):
     event_id, user_id = unshuffle_integers(event_code)
-    assert request.user.id == user_id
+    # assert request.user.id == user_id
     event_name = 'event_{}'.format(event_id)
     events = Event.objects.filter(id=event_id)
     if not events:
