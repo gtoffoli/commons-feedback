@@ -5,13 +5,13 @@ from django.http import JsonResponse
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
-from django.template.defaultfilters import slugify
+from django.utils.translation import gettext_lazy as _
 from django.contrib.auth.models import User
 from schedule.models import Event, CalendarRelation
 from commons.models import Project
 from commons.tracking import track_action
 from commons.utils import unshuffle_integers
-from .producers import feedback_item_producer, feedback_dashboard_producer
+from feedback.producers import feedback_item_producer, feedback_dashboard_producer
 
 
 def room_select(request):
@@ -37,7 +37,40 @@ def feedback_log(request, event_code):
         })
 
 @csrf_exempt
-def feedback_process(request):
+def validate_event(request):
+    """ Gets and processes a personal event_code.
+        event_code: the code obtained by shuffling user_id and event_id
+    """
+    if request.method == 'POST':
+        data = json.loads(request.body.decode('utf-8'))
+        event_code = data['event_code']
+    else:
+        event_code = request.GET.get('event_code', '')
+    event_id, user_id = unshuffle_integers(event_code)
+    data = {}
+    users = User.objects.filter(id=user_id)
+    if not users:
+        message = _('user is unknown')
+    else:
+        user = users[0]
+        if not user.is_full_member():
+            message = _('user is not authorized')
+        else:
+            data['user'] = user.get_display_name()
+            events = Event.objects.filter(id=event_id)
+            if not events:
+                message = _('event is unknown')
+            else:
+                event = events[0]
+                data['event'] = event.title
+                data['start'] = event.start
+                data['end'] = event.end
+                return JsonResponse(data)
+    data['error'] = message
+    return JsonResponse(data)
+
+@csrf_exempt
+def process_feedback(request):
     """ Gets and processes real-time user feedback from mobile app in xAPI compatible format.
         user_id: the id of a registered user
         event_id: the id of an Event in a django-schedule Calendar associated to a Project or Community

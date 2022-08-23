@@ -1,5 +1,8 @@
+app.LoadScript( "persistence.js" );
+app.LoadScript( "locale.js" );
+app.LoadScript( "session.js" );
+app.LoadScript( "spinner.js" );
 
-app.LoadScript("spinner.js");
 app.menu = [
     {text: 'toggle', fun: toggleScreen},
     {text: 'exit', fun: exitApp},
@@ -8,6 +11,7 @@ app.menu = [
 //Called when application is started.
 function OnStart()
 {
+  clearPersisted();
 
   //Create a root layout with objects vertically centered.
   lay_0 = app.CreateLayout( "linear", "VTop,FillXY" );
@@ -53,7 +57,6 @@ function OnStart()
   lay_1 = app.CreateLayout( "linear", "VTop,FillXY" );
   app.lay_1 = lay_1;
   lay_0.AddChild(lay_1);
-  app.layer = lay_1;
 
     //Create an image and add it to the layout.
     img = app.CreateImage( "Img/attention.jpg", 1 );
@@ -62,6 +65,11 @@ function OnStart()
     web = app.CreateWebView( 1.0, 0.5 );
     web.LoadUrl( "https://www.commonspaces.eu?embed=true" );
     lay_1.AddChild(web);
+
+  //Create a session layout
+  lay_session = new SessionScreen();
+  app.lay_session = lay_session;
+  lay_0.AddChild(lay_session);
 
   //Create a layout with objects vertically centered.
   lay_2 = app.CreateLayout( "linear", "VTop,FillXY" );
@@ -116,6 +124,10 @@ function OnStart()
 function toggleScreen() {
     if (app.lay_1.IsVisible()) {
       app.lay_1.Gone();
+      app.lay_session.Show();
+    }
+    else if (app.lay_session.IsVisible()) {
+      app.lay_session.Gone();
       app.lay_2.Show();
     }
     else {
