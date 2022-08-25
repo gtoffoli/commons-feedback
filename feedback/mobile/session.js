@@ -4,22 +4,24 @@ app.event_code = '';
 function SetSession(edt) {
     var event_code = this.GetText();
     var data = { event_code: event_code }
-    var jsonString = JSON.stringify( data );
+    var body = JSON.stringify( data );
     /*
-    fetch(validate_url, {
-      method: "POST",
-      body: jsonString,
-      headers: {"Content-type": "application/json; charset=UTF-8"}
+    url = `${validate_url}?event_code=${event_code}`;
+    fetch(url, {
+      method: "GET",
+      headers: { 'Accept': 'application/json' }
     })
     */
-    url = `${validate_url}?event_code=${event_code}`;
     fetch(validate_url, {
-      method: "GET"
+      method: "POST",
+      body: body,
+      headers: {"Content-type": "application/json; charset=UTF-8"}
     })
     .then(response => response.json())
-    .then(data => writePersisted(data))
-    .catch(err => console.log(err));
+    .then(data => { app.Debug( data ) })
+    .catch(err => { app.Debug( err ) });
 }
+
 
 function SessionScreen() {
   this.lay = app.CreateLayout( "linear", "VTop,FillXY" );
