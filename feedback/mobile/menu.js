@@ -1,6 +1,12 @@
-/* adapted from https://github.com/musaaj/Droidscript-Custom-Spinner */
+app.menu_list = [
+    {text: _('validate'), fun: validateSession},
+    {text: _('attend'), fun: attendEvent},
+    {text: _('home'), fun: Home},
+    {text: _('exit'), fun: exitApp},
+];
 
-function Spinner(list, title, width, height, options)
+/* adapted from https://github.com/musaaj/Droidscript-Custom-Spinner */
+function Menu(list, title, width, height, options)
 {
   this.list = list;
   this.title  = title;
@@ -10,8 +16,8 @@ function Spinner(list, title, width, height, options)
   
   this.toggle = function ()
   {
-    this.left = this.GetLeft(  );
-    this.top = this.GetTop(  );
+    this.left = this.GetLeft( );
+    this.top = this.GetTop( );
     
     if (this.collapsed )
     {
@@ -66,4 +72,33 @@ function Spinner(list, title, width, height, options)
   this.titleTxt.onTouch  = null;
   this.titleTxt.SetOnTouchDown( this.toggle);
   return this.titleTxt;
+}
+
+function Home() {
+  app.lay_session.Gone();
+  app.lay_keypad.Gone();
+  app.lay_cover.Show();
+}
+
+function validateSession() {
+  app.lay_cover.Gone();
+  app.lay_keypad.Gone();
+  sessionRefresh();
+  app.lay_session.Show();
+}
+
+function attendEvent() {
+  app.lay_cover.Gone();
+  app.lay_session.Gone();
+  app.lay_keypad.Show();
+}
+
+function exitApp()
+{
+    // app.ShowPopup( "Welcome to WE-COLLAB!" );
+    var c = confirm("Exit app?");
+    if(c)
+    {
+        app.Exit();
+    }
 }

@@ -1,7 +1,8 @@
-var persistedPath = '/sdcard/cs_feedback/user_event.json';
+var persistedPath = '/sdcard/Download/user_event.json';
 
 function readPersisted() {
   if (app.FileExists( persistedPath )) {
+      app.Debug('file exists');
       var fileContents = app.ReadFile( persistedPath );
       var dataObject = JSON.parse( fileContents );
       return dataObject;

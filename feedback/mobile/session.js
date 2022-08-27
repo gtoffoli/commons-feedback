@@ -1,45 +1,34 @@
 var validate_url = 'https://www.we-collab.eu/feedback/validate/';
 app.event_code = '';
 
-function SetSession(edt) {
+function setSession(edt) {
     var event_code = this.GetText();
     var data = { event_code: event_code }
     var body = JSON.stringify( data );
-    /*
-    url = `${validate_url}?event_code=${event_code}`;
-    fetch(url, {
-      method: "GET",
-      headers: { 'Accept': 'application/json' }
-    })
-    */
     fetch(validate_url, {
       method: "POST",
       body: body,
       headers: {"Content-type": "application/json; charset=UTF-8"}
     })
     .then(response => response.json())
-    .then(data => { app.Debug( data ) })
+    .then(data => { writePersisted( data ) })
     .catch(err => { app.Debug( err ) });
+    sessionRefresh();
 }
 
-
-function SessionScreen() {
+function sessionScreen() {
   this.lay = app.CreateLayout( "linear", "VTop,FillXY" );
 
-  heading = app.CreateText(_('session_info'),1,0.1,"VCenter,Center");
+  padding = app.CreateText('',1,0.2,"VCenter,Center");
+  this.lay.AddChild(padding);
+
+  heading = app.CreateText(_('session_info'),1,0.1,"VTop,Center");
   this.lay.AddChild(heading);
 
-  var sessionObject = readPersisted();
-  var sessionText = null;
-  if ( sessionObject ) {
-    // var text = `%s: %s\n %s: %s` % (_('user_label'), sessionObject.user_name, _('event_label'), sessionObject.event_title);
-    text = `${_('user_label')}: ${sessionObject.user_name}\n ${_('event_label')}: ${sessionObject.event_title}`;
-    sessionText = app.CreateText(text,1,0.1,"Multiline"); 
-  } else {
-    text = _('no_session');
-    sessionText = app.CreateText(text,1,0.1,"VCenter,Left,Multiline");
-  }
+  sessionText = app.CreateText('',1,0.2,"VTop,Left,Multiline");
   this.lay.AddChild(sessionText);
+  app.sessionText = sessionText;
+  sessionRefresh();
 
   var new_code_button = app.CreateButton( _('event_code_new') );
   new_code_button.SetOnTouch( ask_OnTouch );
@@ -48,10 +37,20 @@ function SessionScreen() {
   return this.lay;
 }
 
+function sessionRefresh() {
+  var sessionObject = readPersisted();
+  if ( sessionObject ) {
+    text = `${_('user_label')}: ${sessionObject.user}\n ${_('event_label')}: ${sessionObject.event}`;
+    app.event_code = sessionObject.event_code;
+  } else
+    text = _('no_session');
+  app.sessionText.SetText(text);
+}
+
 function ask_OnTouch() {
   dialogTitle = _('event_code_prompt');
   dialogWidth = 1.0;
-  eventDialog = new inputBox(dialogTitle, SetSession, app.event_code, dialogWidth);
+  eventDialog = new inputBox(dialogTitle, setSession, app.event_code, dialogWidth);
   eventDialog.ShowWithKeyboard();
 }
 
@@ -86,8 +85,8 @@ function inputBox(title, okCallback, hint, width)
     layBtn.AddChild( btnCancel );
     var btnOk = app.CreateButton( "Ok",-1,-1,"custom" );
     layBtn.AddChild( btnOk );    
-    // btnOk.SetOnTouch( function(){okCallback.call(edt);dlg.Dismiss()} );
-    btnOk.SetOnTouch( function(){okCallback.call(edt);} );
+    btnOk.SetOnTouch( function(){okCallback.call(edt);dlg.Dismiss()} );
+    // btnOk.SetOnTouch( function(){okCallback.call(edt);} );
  
     // public functions
     dlg.ShowKeyboard = function(  )

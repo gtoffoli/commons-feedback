@@ -48,6 +48,7 @@ def validate_event(request):
         event_code = request.GET.get('event_code', '')
     event_id, user_id = unshuffle_integers(event_code)
     data = {}
+    data['event_code'] = event_code
     users = User.objects.filter(id=user_id)
     if not users:
         message = _('user is unknown')
