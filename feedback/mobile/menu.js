@@ -49,6 +49,7 @@ function Menu(list, title, width, height, options)
         this.item.SetOnTouchDown( this.list[i].fun);
         this.item.SetPadding( 0.01,0.01,0.01,0.01 );
         this.item.SetMargins( 0, 0, 0, 0.002);
+        this.item.lay = this.lay;
         this.tray.AddChild( this.item );
       }
       
@@ -68,6 +69,7 @@ function Menu(list, title, width, height, options)
   this.titleTxt.width = this.width;
   this.titleTxt.height = this.height;
   this.titleTxt.options = this.options;
+  this.titleTxt.SetTextSize(24);
   this.titleTxt.collapsed = true;
   this.titleTxt.onTouch  = null;
   this.titleTxt.SetOnTouchDown( this.toggle);
@@ -78,6 +80,7 @@ function Home() {
   app.lay_session.Gone();
   app.lay_keypad.Gone();
   app.lay_cover.Show();
+  app.DestroyLayout( this.lay );
 }
 
 function validateSession() {
@@ -85,12 +88,14 @@ function validateSession() {
   app.lay_keypad.Gone();
   sessionRefresh();
   app.lay_session.Show();
+  app.DestroyLayout( this.lay );
 }
 
 function attendEvent() {
   app.lay_cover.Gone();
   app.lay_session.Gone();
   app.lay_keypad.Show();
+  app.DestroyLayout( this.lay );
 }
 
 function exitApp()
