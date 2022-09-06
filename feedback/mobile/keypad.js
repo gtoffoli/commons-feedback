@@ -2,6 +2,8 @@ function addKeypad() {
     //Create a layout with objects vertically centered.
     lay_2 = app.CreateLayout( "linear", "VTop,FillXY" );
 
+    addSessionInfo(lay_2);
+    
     //Add a 3x3 button matrix 
 
     layHorizA = app.CreateLayout( "Linear", "Horizontal" );

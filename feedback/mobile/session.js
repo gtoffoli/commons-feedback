@@ -16,9 +16,22 @@ function setSession(edt) {
     sessionRefresh();
 }
 
+function addSessionInfo(lay) {
+  padding = app.CreateText('',1,0.2,"VCenter,Center");
+  lay.AddChild(padding);
+
+  heading = app.CreateText(_('session_info'),1,0.1,"VTop,Center");
+  lay.AddChild(heading);
+
+  sessionText = app.CreateText('',1,0.2,"VTop,Left,Multiline");
+  lay.AddChild(sessionText);
+  app.sessionText = sessionText;
+  sessionRefresh(); 
+}
+
 function sessionScreen() {
   this.lay = app.CreateLayout( "linear", "VTop,FillXY" );
-
+/*
   padding = app.CreateText('',1,0.2,"VCenter,Center");
   this.lay.AddChild(padding);
 
@@ -29,6 +42,8 @@ function sessionScreen() {
   this.lay.AddChild(sessionText);
   app.sessionText = sessionText;
   sessionRefresh();
+*/
+  addSessionInfo(this.lay)
 
   var new_code_button = app.CreateButton( _('event_code_new') );
   new_code_button.SetOnTouch( ask_OnTouch );
@@ -40,7 +55,7 @@ function sessionScreen() {
 function sessionRefresh() {
   var sessionObject = readPersisted();
   if ( sessionObject ) {
-    text = `${_('user_label')}: ${sessionObject.user}\n ${_('event_label')}: ${sessionObject.event}`;
+    text = `  ${_('user_label')}: ${sessionObject.user}\n  ${_('event_label')}: ${sessionObject.event}`;
     app.event_code = sessionObject.event_code;
   } else
     text = _('no_session');

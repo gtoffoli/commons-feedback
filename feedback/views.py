@@ -24,17 +24,19 @@ def chat_room(request, room_name):
 
 def feedback_log(request, event_code):
     event_id, user_id = unshuffle_integers(event_code)
-    # assert request.user.id == user_id
-    event_name = 'event_{}'.format(event_id)
-    events = Event.objects.filter(id=event_id)
-    if not events:
-        pass
-    else:
-        event = events[0]
-        return render(request, 'feedback/feedback_log.html', {
-            'event_name': event_name,
-            'event_title': event.title
-        })
+    if event_id and user_id:
+        # assert request.user.id == user_id
+        event_name = 'event_{}'.format(event_id)
+        events = Event.objects.filter(id=event_id)
+        if events:
+            event = events[0]
+            return render(request, 'feedback/feedback_log.html', {
+                'event_name': event_name,
+                'event_title': event.title
+            })
+    return render(request, 'feedback/feedback_log.html', {
+       'error': _('an invalid event code was specified')                                             
+    })
 
 @csrf_exempt
 def validate_event(request):

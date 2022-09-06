@@ -1,7 +1,8 @@
 app.menu_list = [
+    {text: _('home'), fun: Home},
     {text: _('validate'), fun: validateSession},
     {text: _('attend'), fun: attendEvent},
-    {text: _('home'), fun: Home},
+    {text: _('website'), fun: Website},
     {text: _('exit'), fun: exitApp},
 ];
 
@@ -77,24 +78,36 @@ function Menu(list, title, width, height, options)
 }
 
 function Home() {
+  app.lay_cover.Show();
   app.lay_session.Gone();
   app.lay_keypad.Gone();
-  app.lay_cover.Show();
+  app.lay_website.Gone();
   app.DestroyLayout( this.lay );
 }
 
 function validateSession() {
   app.lay_cover.Gone();
-  app.lay_keypad.Gone();
   sessionRefresh();
   app.lay_session.Show();
+  app.lay_keypad.Gone();
+  app.lay_website.Gone();
   app.DestroyLayout( this.lay );
 }
 
 function attendEvent() {
   app.lay_cover.Gone();
   app.lay_session.Gone();
+  sessionRefresh();
   app.lay_keypad.Show();
+  app.lay_website.Gone();
+  app.DestroyLayout( this.lay );
+}
+
+function Website() {
+  app.lay_cover.Gone();
+  app.lay_session.Gone();
+  app.lay_keypad.Gone();
+  app.lay_website.Show();
   app.DestroyLayout( this.lay );
 }
 

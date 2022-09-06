@@ -1,3 +1,5 @@
+{% load i18n %}
+
 <!-- feedback/templates/feedback/event_log.html -->
 <!DOCTYPE html>
 <html>
@@ -6,7 +8,11 @@
     <title>Raw Event Feedback</title>
 </head>
 <body>
-    <h3>Raw feedback messages log for event <i>{{ event_title }}</i></h3>
+  {% if error %}
+    <h3>{% trans "raw feedback messages log"|capfirst %}</h3>
+      <label>{{ error|capfirst }}</label>
+  {% else %}
+    <h3>{% trans "raw feedback messages log"|capfirst %} {% trans "for the event" %} <i>{{ event_title }}</i></h3>
     <textarea id="event-log" cols="100" rows="20"></textarea><br>
     <script>
         if (window.location.protocol == 'https:') {
@@ -25,5 +31,6 @@
             console.error('Event socket closed unexpectedly');
         };
     </script>
+  {% endif %}
 </body>
 </html>

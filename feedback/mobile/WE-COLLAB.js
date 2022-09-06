@@ -4,6 +4,7 @@ app.LoadScript( "persistence.js" );
 app.LoadScript( "cover.js" );
 app.LoadScript( "session.js" );
 app.LoadScript( "keypad.js" );
+app.LoadScript( "website.js" );
 
 //Called when application is started.
 function OnStart()
@@ -58,6 +59,11 @@ function OnStart()
   lay_keypad = addKeypad();
   app.lay_keypad = lay_keypad;
   lay_root.AddChild(lay_keypad);
+
+  // Create a website layout
+  lay_website = new websiteScreen();;
+  app.lay_website = lay_website;
+  lay_root.AddChild(lay_website);
   
   // Add layout to app 
   app.AddLayout( lay_root );
