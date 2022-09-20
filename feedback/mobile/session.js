@@ -17,13 +17,13 @@ function setSession(edt) {
 }
 
 function addSessionInfo(lay) {
-  padding = app.CreateText('',1,0.2,"VCenter,Center");
+  padding = app.CreateText('',1,0.25,"VCenter,Center");
   lay.AddChild(padding);
 
-  heading = app.CreateText(_('session_info'),1,0.1,"VTop,Center");
+  heading = app.CreateText(_('session_info'),1,0.05,"VTop,Center");
   lay.AddChild(heading);
 
-  sessionText = app.CreateText('',1,0.2,"VTop,Left,Multiline");
+  sessionText = app.CreateText('',1,0.15,"VTop,Left,Multiline");
   lay.AddChild(sessionText);
   app.sessionText = sessionText;
   sessionRefresh(); 
