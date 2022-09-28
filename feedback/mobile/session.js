@@ -11,9 +11,11 @@ function setSession(edt) {
       headers: {"Content-type": "application/json; charset=UTF-8"}
     })
     .then(response => response.json())
-    .then(data => { writePersisted( data ) })
+    .then(data => {
+      writePersisted( data );
+      sessionRefresh(null);
+    })
     .catch(err => { app.Debug( err ) });
-    sessionRefresh();
 }
 
 function addSessionInfo(lay) {
@@ -25,25 +27,13 @@ function addSessionInfo(lay) {
 
   sessionText = app.CreateText('',1,0.15,"VTop,Left,Multiline");
   lay.AddChild(sessionText);
-  app.sessionText = sessionText;
-  sessionRefresh(); 
+  lay.sessionText = sessionText;
 }
 
 function sessionScreen() {
   this.lay = app.CreateLayout( "linear", "VTop,FillXY" );
-/*
-  padding = app.CreateText('',1,0.2,"VCenter,Center");
-  this.lay.AddChild(padding);
-
-  heading = app.CreateText(_('session_info'),1,0.1,"VTop,Center");
-  this.lay.AddChild(heading);
-
-  sessionText = app.CreateText('',1,0.2,"VTop,Left,Multiline");
-  this.lay.AddChild(sessionText);
-  app.sessionText = sessionText;
-  sessionRefresh();
-*/
   addSessionInfo(this.lay)
+  sessionRefresh(this.lay);
 
   var new_code_button = app.CreateButton( _('event_code_new') );
   new_code_button.SetOnTouch( ask_OnTouch );
@@ -52,14 +42,19 @@ function sessionScreen() {
   return this.lay;
 }
 
-function sessionRefresh() {
+function sessionRefresh(lay) {
   var sessionObject = readPersisted();
   if ( sessionObject ) {
     text = `  ${_('user_label')}: ${sessionObject.user}\n  ${_('event_label')}: ${sessionObject.event}`;
     app.event_code = sessionObject.event_code;
   } else
     text = _('no_session');
-  app.sessionText.SetText(text);
+  if (lay === null) {
+    app.lay_session.sessionText.SetText(text);
+    // app.Alert(text);
+  }
+  else
+    lay.sessionText.SetText(text);
 }
 
 function ask_OnTouch() {
@@ -96,12 +91,11 @@ function inputBox(title, okCallback, hint, width)
     var layBtn = app.CreateLayout( "Linear", "Horizontal" );
     lay.AddChild( layBtn );
     var btnCancel = app.CreateButton( "Cancel",-1,-1,"custom" );
-    btnCancel.SetOnTouch( function(){dlg.Dismiss();} );
+    btnCancel.SetOnTouch( function() {dlg.Dismiss();} );
     layBtn.AddChild( btnCancel );
     var btnOk = app.CreateButton( "Ok",-1,-1,"custom" );
     layBtn.AddChild( btnOk );    
-    btnOk.SetOnTouch( function(){okCallback.call(edt);dlg.Dismiss()} );
-    // btnOk.SetOnTouch( function(){okCallback.call(edt);} );
+    btnOk.SetOnTouch( function() {okCallback.call(edt); dlg.Dismiss()} );
  
     // public functions
     dlg.ShowKeyboard = function(  )
@@ -110,8 +104,7 @@ function inputBox(title, okCallback, hint, width)
     dlg.SetText = function(txt){edt.SetText(txt);}
  
     dlg.ShowWithKeyboard=function()
-    {setTimeout(dlg.ShowKeyboard, 100);dlg.Show();}
+    {setTimeout(dlg.ShowKeyboard, 100); dlg.Show();}
  
-    // 
     return dlg
 }

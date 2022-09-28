@@ -10,6 +10,7 @@ app.LoadScript( "website.js" );
 function OnStart()
 {
   // clearPersisted();
+  getPrivateFolder();
 
   //Create a root layout with objects vertically centered.
   lay_root = app.CreateLayout( "linear", "VTop,FillXY" );
@@ -18,14 +19,9 @@ function OnStart()
   layHeader = app.CreateLayout( "Absolute", "Vertical");
   lay_root.AddChild(layHeader);
 
-  // Create an image and add it to the header.
-  icon = app.CreateImage( "Img/icon.png", 0.15, 0.08 );
-  icon.SetPosition(0.85,0,0.15,0.08);
-  layHeader.AddChild( icon );
-
   //Create a text and add it to the header
   txt1 = app.CreateText("WE-COLLAB Feedback",1,0.08,"VCenter,Center");
-  txt1.SetPosition(0.15,0,0.70,0.08);
+  txt1.SetPosition(0.15,0,0.85,0.08);
   txt1.SetPadding(0,0.01,0,0);
   txt1.SetTextSize(20);
   txt1.SetBackground("/Sys/Img/BlueBack.jpg");

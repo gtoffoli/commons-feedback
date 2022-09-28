@@ -87,7 +87,7 @@ function Home() {
 
 function validateSession() {
   app.lay_cover.Gone();
-  sessionRefresh();
+  sessionRefresh(app.lay_session);
   app.lay_session.Show();
   app.lay_keypad.Gone();
   app.lay_website.Gone();
@@ -97,7 +97,7 @@ function validateSession() {
 function attendEvent() {
   app.lay_cover.Gone();
   app.lay_session.Gone();
-  sessionRefresh();
+  sessionRefresh(app.lay_keypad);
   app.lay_keypad.Show();
   app.lay_website.Gone();
   app.DestroyLayout( this.lay );
@@ -113,7 +113,6 @@ function Website() {
 
 function exitApp()
 {
-    // app.ShowPopup( "Welcome to WE-COLLAB!" );
     var c = confirm("Exit app?");
     if(c)
     {
