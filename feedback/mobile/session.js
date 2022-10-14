@@ -19,23 +19,27 @@ function setSession(edt) {
 }
 
 function addSessionInfo(lay) {
-  padding = app.CreateText('',1,0.25,"VCenter,Center");
-  lay.AddChild(padding);
 
-  heading = app.CreateText(_('session_info'),1,0.05,"VTop,Center");
+  heading = app.CreateText(_('session_info'),1,0.06,"VBottom,Center, Bold");
+  heading.SetTextColor("white");
+  heading.SetTextSize(32,"ps");
   lay.AddChild(heading);
 
-  sessionText = app.CreateText('',1,0.15,"VTop,Left,Multiline");
+  sessionText = app.CreateText('',1,0.14,"VTop,Left,Multiline");
+  sessionText.SetTextColor("white");
+  sessionText.SetTextSize(30,"ps");
   lay.AddChild(sessionText);
   lay.sessionText = sessionText;
 }
 
 function sessionScreen() {
-  this.lay = app.CreateLayout( "linear", "VTop,FillXY" );
+  this.lay = app.CreateLayout( "linear", "Vertical, FillXY" );
   addSessionInfo(this.lay)
   sessionRefresh(this.lay);
 
   var new_code_button = app.CreateButton( _('event_code_new') );
+  new_code_button.SetBackColor("#ff66aa66");
+  new_code_button.SetTextSize(30,"ps");
   new_code_button.SetOnTouch( ask_OnTouch );
   this.lay.AddChild( new_code_button );
 
@@ -51,7 +55,6 @@ function sessionRefresh(lay) {
     text = _('no_session');
   if (lay === null) {
     app.lay_session.sessionText.SetText(text);
-    // app.Alert(text);
   }
   else
     lay.sessionText.SetText(text);
@@ -59,8 +62,11 @@ function sessionRefresh(lay) {
 
 function ask_OnTouch() {
   dialogTitle = _('event_code_prompt');
+ // var lay = app.CreateLayout( "Linear", "" );
   dialogWidth = 1.0;
   eventDialog = new inputBox(dialogTitle, setSession, app.event_code, dialogWidth);
+  eventDialog.SetBackColor("#333333");
+  //eventDialog.SetTextColor("white");
   eventDialog.ShowWithKeyboard();
 }
 
@@ -73,9 +79,9 @@ function ask_OnTouch() {
    width (optional) 0 to 1 used when creating TextBox */
 function inputBox(title, okCallback, hint, width)
 {
-    var options = "NoCancel"
+    var options = "NoCancel";
     title = title || "";
-    hint = hint || "Your text";
+    hint = hint || _("your_code");
     //suppress title line if no title - pass " " to override
     if( title==="") options += ",NoTitle";
  
@@ -86,14 +92,22 @@ function inputBox(title, okCallback, hint, width)
  
     // add controls
     var edt = app.CreateTextEdit( "", width );
+    edt.SetBackColor("#333333");
+    edt.SetTextColor("white");
+    edt.SetTextSize(30, "ps");
     edt.SetHint( hint );
     lay.AddChild( edt );
     var layBtn = app.CreateLayout( "Linear", "Horizontal" );
+
     lay.AddChild( layBtn );
-    var btnCancel = app.CreateButton( "Cancel",-1,-1,"custom" );
+    var btnCancel = app.CreateButton( _("cancel"),-1,-1 );
     btnCancel.SetOnTouch( function() {dlg.Dismiss();} );
+    btnCancel.SetBackColor("#ff66aa66");
+    btnCancel.SetTextSize(30,"ps");
     layBtn.AddChild( btnCancel );
-    var btnOk = app.CreateButton( "Ok",-1,-1,"custom" );
+    var btnOk = app.CreateButton( "Ok",-1,-1 );
+    btnOk.SetBackColor("#ff66aa66");
+    btnOk.SetTextSize(30,"ps");
     layBtn.AddChild( btnOk );    
     btnOk.SetOnTouch( function() {okCallback.call(edt); dlg.Dismiss()} );
  

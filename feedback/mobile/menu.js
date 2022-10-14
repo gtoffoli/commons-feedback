@@ -1,88 +1,68 @@
-app.menu_list = [
-    {text: _('home'), fun: Home},
-    {text: _('validate'), fun: validateSession},
-    {text: _('attend'), fun: attendEvent},
-    {text: _('website'), fun: Website},
-    {text: _('exit'), fun: exitApp},
-];
-
-/* adapted from https://github.com/musaaj/Droidscript-Custom-Spinner */
-function Menu(list, title, width, height, options)
-{
-  this.list = list;
-  this.title  = title;
-  this.width = width;
-  this.height = height;
-  this.options  = options;
+//Populate menu list
+var  menu_list = [
+    {title: _('home'), fun: Home},
+    {title: _('validate'), fun: validateSession},
+    {title: _('attend'), fun:attendEvent},
+    {title: _('website'), fun:Website},
+    {title: _('exit'), fun:exitApp}
+]
   
-  this.toggle = function ()
-  {
-    this.left = this.GetLeft( );
-    this.top = this.GetTop( );
-    
-    if (this.collapsed )
-    {
-      this.lay = app.CreateLayout( "absolute", "TouchThrough" );
-      this.lay.SetPosition(1,1,1,1);
-      this.lay.SetPadding( 0,0.025,0,0 );
-      this.lay.SetOnTouchDown( function()
-      {
-        app.DestroyLayout( this );
-      });
-      
-      this.scrollLay = app.CreateLayout( "absolute", "TouchThrough" );
-      this.scrollLay.SetPosition( this.left, this.top, -1, -1);
-      this.scrollLay.SetPadding( 0.01, 0.01, 0.01, 0.01 );
-      this.lay.AddChild( this.scrollLay );
-      
-      this.scroll = app.CreateScroller(-1,-1);
-      this.scroll.SetBackColor( "#05000000" );
-      this.scroll.SetPadding( 0.005, 0, 0.005, 0.005);
-      this.scrollLay.AddChild( this.scroll );
-      
-      this.tray  = app.CreateLayout( "Linear", "TouchThrough" );
-      this.tray.SetBackColor( "#000000" );
-      this.scroll.AddChild(this.tray );
-      
-      for ( i in this.list)
-      {
-        this.item = app.CreateText(this.list[i].text,this.width,this.height,this.options+"FillX");
-        this.item.SetOnTouchDown( this.list[i].fun);
-        this.item.SetPadding( 0.01,0.01,0.01,0.01 );
-        this.item.SetMargins( 0, 0, 0, 0.002);
-        this.item.lay = this.lay;
-        this.tray.AddChild( this.item );
-      }
-      
-      app.AddLayout( this.lay );
-      this.collapsed = false;
-    }
+function mnuAnimate()
+{
+    if(layMenu.GetVisibility()==="Hide")
+       layMenu.Show();
     else
-    {
-      this.collapsed  = true;
-      app.DestroyLayout( this.lay );
-    }
-  }
-
-  this.titleTxt = app.CreateText( this.title, this.width, this.height, this.options);
-  this.titleTxt.list = this.list;
-  this.titleTxt.title = this.title;
-  this.titleTxt.width = this.width;
-  this.titleTxt.height = this.height;
-  this.titleTxt.options = this.options;
-  this.titleTxt.SetTextSize(24);
-  this.titleTxt.collapsed = true;
-  this.titleTxt.onTouch  = null;
-  this.titleTxt.SetOnTouchDown( this.toggle);
-  return this.titleTxt;
+       layMenu.Hide();
 }
 
+function getSlideMenu(onTouch)
+{
+//Create menu layout
+    var lst 
+
+    var layMenu = app.CreateLayout( "Linear", "VTop, TouchThrough" );    
+    layMenu.SetBackColor("#ff66aa66");
+    //Create menu list
+    lst = app.CreateList( "" ,0.8,0.8,"Bold");
+    lst.SetTextSize(30, "ps");
+    if(onTouch) lst.SetOnTouch(onTouch);
+    lst.SetList(null);
+    layMenu.AddChild( lst );
+    
+    //public methods
+    {
+         layMenu.Hide();
+    }
+    layMenu.Show=function()
+    {
+         this.Animate("SlideFromRight");
+    }
+    layMenu.Hide=function()
+    {
+         this.Animate("SlidetoRight");
+    }
+    layMenu.AddItem=function( title)
+    {
+        lst.AddItem( title);
+    }
+    layMenu.Setlist=function( list,delim )
+    {
+        lst.SetList( list,delim )
+    }
+    return layMenu
+}
+
+// callback function for menu selection
+function menu_OnTouch(title, body, image, index) {
+  layMenu.Animate("SlidetoRight");
+  app.Execute(menu_list[index].fun());
+}
+ 
 function Home() {
   app.lay_cover.Show();
   app.lay_session.Gone();
   app.lay_keypad.Gone();
   app.lay_website.Gone();
-  app.DestroyLayout( this.lay );
 }
 
 function validateSession() {
@@ -91,7 +71,6 @@ function validateSession() {
   app.lay_session.Show();
   app.lay_keypad.Gone();
   app.lay_website.Gone();
-  app.DestroyLayout( this.lay );
 }
 
 function attendEvent() {
@@ -100,7 +79,6 @@ function attendEvent() {
   sessionRefresh(app.lay_keypad);
   app.lay_keypad.Show();
   app.lay_website.Gone();
-  app.DestroyLayout( this.lay );
 }
 
 function Website() {
@@ -108,7 +86,6 @@ function Website() {
   app.lay_session.Gone();
   app.lay_keypad.Gone();
   app.lay_website.Show();
-  app.DestroyLayout( this.lay );
 }
 
 function exitApp()

@@ -9,58 +9,65 @@ app.LoadScript( "website.js" );
 //Called when application is started.
 function OnStart()
 {
-  // clearPersisted();
+  //clearPersisted();
   getPrivateFolder();
 
-  //Create a root layout with objects vertically centered.
-  lay_root = app.CreateLayout( "linear", "VTop,FillXY" );
+  //Create a root layout with 2 layout .
+  var lay_root=app.CreateLayout("Absolute",);
+  lay_root.SetBackColor("#ff224422");
+  lay_root.SetPosition(0,0,1,1);
+  app.AddLayout(lay_root);
   
-  //Create a header and add it to the root.
-  layHeader = app.CreateLayout( "Absolute", "Vertical");
-  lay_root.AddChild(layHeader);
-
+  //Create a Body and add it to the root.
+  var layBody=app.CreateLayout("Linear","Vertical,FillXY");
+  lay_root.AddChild(layBody);
+  
+  //Create a header and add it to the body.
+  var layHeader = app.CreateLayout( "linear", "Horizontal, FillX");
+  layHeader.SetBackColor("black");
+  layBody.AddChild(layHeader);
+  
   //Create a text and add it to the header
-  txt1 = app.CreateText("WE-COLLAB Feedback",1,0.08,"VCenter,Center");
-  txt1.SetPosition(0.15,0,0.85,0.08);
-  txt1.SetPadding(0,0.01,0,0);
-  txt1.SetTextSize(20);
-  txt1.SetBackground("/Sys/Img/BlueBack.jpg");
+  txt1 = app.CreateText("WE-COLLAB Feedback",0.69,0.08,"VCenter,Center, Bold");
+  txt1.SetTextSize(34,"ps");
   layHeader.AddChild(txt1);
 
-  list = app.menu_list;
-  title = '[fa-list]';
-  width = 0.5;
-  height = 0.05;
-  options = "VCenter,Center,FontAwesome";
-  menu = new Menu(list, title, width, height, options);
-  app.menu = menu;
-  menu.onTouch = function()
-  {
-    app.ShowPopup(this.GetText());
+  //Create the menu button and add it to the header
+  var btnMnu;
+  btnMnu=app.CreateButton("[fa-bars]", -1, -1, "fontawesome, custom");
+  btnMnu.SetStyle( "#77bb77", "#559955", 15, "#449944",2,0 );
+  btnMnu.SetTextSize(34,"ps");
+  btnMnu.SetOnTouch(mnuAnimate);
+  layHeader.AddChild(btnMnu);
+    
+  //Create menu layout
+  layMenu = getSlideMenu(menu_OnTouch);    
+  layMenu.SetPosition(0.4,0.08);
+  
+  //Populate layMenu
+  for (i = 0; i < menu_list.length; i++) {
+    layMenu.AddItem(menu_list[i].title);
   }
-  menu.SetPosition(0,0,0.15,0.08);
-  layHeader.AddChild(menu);
+  lay_root.AddChild( layMenu );
 
   // Create a cover layout
   lay_cover = new coverScreen();
   app.lay_cover = lay_cover;
-  lay_root.AddChild(lay_cover);
+  layBody.AddChild(lay_cover);
 
   // Create a session layout
   lay_session = new sessionScreen();
   app.lay_session = lay_session;
-  lay_root.AddChild(lay_session);
+  layBody.AddChild(lay_session);
 
   // Create a keypad layout
   lay_keypad = addKeypad();
   app.lay_keypad = lay_keypad;
-  lay_root.AddChild(lay_keypad);
+  layBody.AddChild(lay_keypad);
 
   // Create a website layout
-  lay_website = new websiteScreen();;
+  lay_website = new websiteScreen();
   app.lay_website = lay_website;
-  lay_root.AddChild(lay_website);
-  
-  // Add layout to app 
-  app.AddLayout( lay_root );
+  layBody.AddChild(lay_website);
+
 }
