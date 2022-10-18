@@ -1,9 +1,13 @@
 var validate_url = 'https://www.we-collab.eu/feedback/validate/';
 app.event_code = '';
 
-function setSession(edt) {
-    var event_code = this.GetText();
-    var data = { event_code: event_code }
+// function setSession(edt) {
+function setSession(dlg) {
+    // var event_code = this.GetText();
+    var user_email = this.email.GetText();
+    var event_code = this.code.GetText();
+    // var data = { event_code: event_code };
+    var data = { event_code: event_code, user_email: user_email };
     var body = JSON.stringify( data );
     fetch(validate_url, {
       method: "POST",
@@ -49,8 +53,15 @@ function sessionScreen() {
 function sessionRefresh(lay) {
   var sessionObject = readPersisted();
   if ( sessionObject ) {
-    text = `  ${_('user_label')}: ${sessionObject.user}\n  ${_('event_label')}: ${sessionObject.event}`;
     app.event_code = sessionObject.event_code;
+    app.user_email = sessionObject.user_email;
+    // text = `  ${_('user_label')}: ${sessionObject.user}\n  ${_('event_label')}: ${sessionObject.event}`;
+    text  = ` ${_('user_label')}: ${sessionObject.user}\n`;
+    text += ` ${_('event_label')}: ${sessionObject.event}\n`;
+    text += ` ${_('start_label')}: ${sessionObject.start}\n`;
+    text += ` ${_('end_label')}: ${sessionObject.end}\n`;
+    if (sessionObject.warning)
+      text += ` ${_('warning_label')}: ${sessionObject.warning}`;
   } else
     text = _('no_session');
   if (lay === null) {
@@ -62,9 +73,10 @@ function sessionRefresh(lay) {
 
 function ask_OnTouch() {
   dialogTitle = _('event_code_prompt');
- // var lay = app.CreateLayout( "Linear", "" );
+  // var lay = app.CreateLayout( "Linear", "" );
   dialogWidth = 1.0;
-  eventDialog = new inputBox(dialogTitle, setSession, app.event_code, dialogWidth);
+  // eventDialog = new inputBox(dialogTitle, setSession, app.event_code, dialogWidth);
+  eventDialog = new inputBox(dialogTitle, setSession, dialogWidth);
   eventDialog.SetBackColor("#333333");
   //eventDialog.SetTextColor("white");
   eventDialog.ShowWithKeyboard();
@@ -75,30 +87,35 @@ function ask_OnTouch() {
    This function returns an input dialog
    title (optional) dialog title, suppressed if empty
    okCallback (required) function called when Ok touched
-   hint (optional) empty string displays no hint
    width (optional) 0 to 1 used when creating TextBox */
-function inputBox(title, okCallback, hint, width)
+// function inputBox(title, okCallback, hint, width)
+function inputBox(title, okCallback, width)
 {
     var options = "NoCancel";
     title = title || "";
-    hint = hint || _("your_code");
     //suppress title line if no title - pass " " to override
     if( title==="") options += ",NoTitle";
  
     // create dialog
-    var dlg = app.CreateDialog( title, options  );
+    var dlg = app.CreateDialog( title, options );
     var lay = app.CreateLayout( "Linear", "" );
     dlg.AddLayout( lay );
  
-    // add controls
-    var edt = app.CreateTextEdit( "", width );
-    edt.SetBackColor("#333333");
-    edt.SetTextColor("white");
-    edt.SetTextSize(30, "ps");
-    edt.SetHint( hint );
-    lay.AddChild( edt );
-    var layBtn = app.CreateLayout( "Linear", "Horizontal" );
+    // add edit controls
+    var edtEmail = app.CreateTextEdit( "", width );
+    edtEmail.SetBackColor("#333333");
+    edtEmail.SetTextColor("white");
+    edtEmail.SetTextSize(30, "ps");
+    edtEmail.SetHint( _("your_email") );
+    lay.AddChild( edtEmail );
+    var edtCode = app.CreateTextEdit( "", width );
+    edtCode.SetBackColor("#333333");
+    edtCode.SetTextColor("white");
+    edtCode.SetTextSize(30, "ps");
+    edtCode.SetHint( _("your_code") );
+    lay.AddChild( edtCode );
 
+    var layBtn = app.CreateLayout( "Linear", "Horizontal" );
     lay.AddChild( layBtn );
     var btnCancel = app.CreateButton( _("cancel"),-1,-1 );
     btnCancel.SetOnTouch( function() {dlg.Dismiss();} );
@@ -109,16 +126,17 @@ function inputBox(title, okCallback, hint, width)
     btnOk.SetBackColor("#ff66aa66");
     btnOk.SetTextSize(30,"ps");
     layBtn.AddChild( btnOk );    
-    btnOk.SetOnTouch( function() {okCallback.call(edt); dlg.Dismiss()} );
+    // btnOk.SetOnTouch( function() {okCallback.call(edtCode); dlg.Dismiss()} );
+    dlg.email = edtEmail;
+    dlg.code = edtCode;
+    btnOk.SetOnTouch( function() {okCallback.call(dlg); dlg.Dismiss()} );
  
     // public functions
     dlg.ShowKeyboard = function(  )
-    {edt.Focus();app.ShowKeyboard( edt );}
- 
-    dlg.SetText = function(txt){edt.SetText(txt);}
- 
+    {edtCode.Focus(); app.ShowKeyboard( edtCode );}
+
     dlg.ShowWithKeyboard=function()
     {setTimeout(dlg.ShowKeyboard, 100); dlg.Show();}
- 
+
     return dlg
 }

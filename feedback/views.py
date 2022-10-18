@@ -46,30 +46,38 @@ def validate_event(request):
     if request.method == 'POST':
         data = json.loads(request.body.decode('utf-8'))
         event_code = data['event_code']
+        user_email = data['user_email']
     else:
         event_code = request.GET.get('event_code', '')
+        user_email = request.GET.get('user_email', '')
     event_id, user_id = unshuffle_integers(event_code)
     data = {}
     data['event_code'] = event_code
+    data['user_email'] = user_email
     users = User.objects.filter(id=user_id)
     if not users:
-        message = _('user is unknown')
+        error = _('user is unknown')
     else:
         user = users[0]
         if not user.is_full_member():
-            message = _('user is not authorized')
+            error = _('user is not authorized')
+        elif not user_email==user.email:
+            error = _('user email is invalid')
         else:
             data['user'] = user.get_display_name()
             events = Event.objects.filter(id=event_id)
             if not events:
-                message = _('event is unknown')
+                error = _('event is unknown')
             else:
                 event = events[0]
                 data['event'] = event.title
                 data['start'] = event.start
                 data['end'] = event.end
+                now = timezone.now()
+                if now < event.start or now > event.end:
+                    data['warning'] =  _('event is not running')
                 return JsonResponse(data)
-    data['error'] = message
+    data['error'] = error
     return JsonResponse(data)
 
 @csrf_exempt
@@ -88,22 +96,19 @@ def process_feedback(request):
     event_id, user_id = unshuffle_integers(event_code)
     users = User.objects.filter(id=user_id)
     if not users:
-        message = 'user is unknown'
+        message = _('user is unknown')
     else:
         actor = users[0]
         verb = 'feedback'
         events = Event.objects.filter(id=event_id)
         if not events:
-            message = 'event is unknown'
+            message = _('event is unknown')
         else:
             event = events[0]
-            """
             now = timezone.now()
             if now < event.start or now > event.end:
-                message = 'event {} is not running'.format(event.title)
+                message = _('event is not running')
             else:
-            """
-            if True:
                 calendar = event.calendar
                 relations = CalendarRelation.objects.filter(calendar=calendar)
                 project_id = relations[0].object_id
