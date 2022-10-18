@@ -12,6 +12,7 @@ var string_map = {
   start_label: { en: "start time", it: 'inizio', },
   end_label: { en: "end time", it: 'fine', },
   warning_label: { en: "warning", it: 'attenzione', },
+  error_label: { en: "error", it: 'errore', },
   no_session: { en: "no session is ongoing", it: "nessuna sessione in corso"},
   event_code_prompt: { en: "enter/change your event code", it: "digita/modifica il tuo codice evento"},
   event_code_new: { en: "new session", it: "nuova sessione"},

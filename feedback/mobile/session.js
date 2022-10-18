@@ -29,7 +29,8 @@ function addSessionInfo(lay) {
   heading.SetTextSize(32,"ps");
   lay.AddChild(heading);
 
-  sessionText = app.CreateText('',1,0.14,"VTop,Left,Multiline");
+  // sessionText = app.CreateText('',1,0.14,"VTop,Left,Multiline");
+  sessionText = app.CreateText('',1,0.2,"VTop,Left,Multiline");
   sessionText.SetTextColor("white");
   sessionText.SetTextSize(30,"ps");
   lay.AddChild(sessionText);
@@ -50,18 +51,26 @@ function sessionScreen() {
   return this.lay;
 }
 
+function formatEventDate(date) {
+  return date.substring(0, 10) + ` ` + date.substring(11, 16);
+}
+
 function sessionRefresh(lay) {
   var sessionObject = readPersisted();
   if ( sessionObject ) {
     app.event_code = sessionObject.event_code;
     app.user_email = sessionObject.user_email;
-    // text = `  ${_('user_label')}: ${sessionObject.user}\n  ${_('event_label')}: ${sessionObject.event}`;
-    text  = ` ${_('user_label')}: ${sessionObject.user}\n`;
-    text += ` ${_('event_label')}: ${sessionObject.event}\n`;
-    text += ` ${_('start_label')}: ${sessionObject.start}\n`;
-    text += ` ${_('end_label')}: ${sessionObject.end}\n`;
-    if (sessionObject.warning)
-      text += ` ${_('warning_label')}: ${sessionObject.warning}`;
+    if (sessionObject.error)
+      text = ` ${_('error_label')}: ${sessionObject.error}`;
+    else {
+      // text = `  ${_('user_label')}: ${sessionObject.user}\n  ${_('event_label')}: ${sessionObject.event}`;
+      text  = ` ${_('user_label')}: ${sessionObject.user}\n`;
+      text += ` ${_('event_label')}: ${sessionObject.event}\n`;
+      text += ` ${_('start_label')}: ${formatEventDate(sessionObject.start)}\n`;
+      text += ` ${_('end_label')}: ${formatEventDate(sessionObject.end)}\n\n`;
+      if (sessionObject.warning)
+        text += ` ${_('warning_label')}: ${sessionObject.warning}`;
+    }
   } else
     text = _('no_session');
   if (lay === null) {
