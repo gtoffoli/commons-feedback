@@ -22,19 +22,29 @@ def chat_room(request, room_name):
         'room_name': room_name
     })
 
-def feedback_log(request, event_code):
+def feedback_dashboard(request, event_code):
     event_id, user_id = unshuffle_integers(event_code)
     if event_id and user_id:
-        # assert request.user.id == user_id
+        assert request.user.id == user_id
+        user = User.objects.get(id=user_id)
+        user_name = user.get_display_name()
         event_name = 'event_{}'.format(event_id)
         events = Event.objects.filter(id=event_id)
         if events:
             event = events[0]
-            return render(request, 'feedback/feedback_log.html', {
+            calendar = event.calendar
+            relations = CalendarRelation.objects.filter(calendar=calendar)
+            project_id = relations[0].object_id
+            project = Project.objects.get(id=project_id)
+            return render(request, 'feedback/feedback_dashboard.html', {
+                'user_name': user_name,
+                'event_code': event_code,
                 'event_name': event_name,
-                'event_title': event.title
+                'event_title': event.title,
+                'project_name': project.name,
+                'VUE': True,
             })
-    return render(request, 'feedback/feedback_log.html', {
+    return render(request, 'feedback/feedback_dashboard.html', {
        'error': _('an invalid event code was specified')                                             
     })
 
@@ -95,34 +105,38 @@ def process_feedback(request):
         feedback = request.GET.get('feedback', 'unknown')
     event_id, user_id = unshuffle_integers(event_code)
     users = User.objects.filter(id=user_id)
+    group_name = ''
+    data = {}
     if not users:
-        message = _('user is unknown')
+        data['error'] = _('user is unknown')
     else:
-        actor = users[0]
+        user = users[0]
+        user_name = user.get_display_name()
+        data['user_name'] = user_name
         verb = 'feedback'
         events = Event.objects.filter(id=event_id)
         if not events:
-            message = _('event is unknown')
+            data['error'] = _('event is unknown')
         else:
             event = events[0]
+            event_name = 'event_{}'.format(event_id)
+            data['event_name'] = event_name
+            group_name = 'feedback_{}'.format(event_name)
+            data['group_name'] = group_name
             now = timezone.now()
             if now < event.start or now > event.end:
-                message = _('event is not running')
+                data['warning'] = _('event is not running')
+            calendar = event.calendar
+            relations = CalendarRelation.objects.filter(calendar=calendar)
+            project_id = relations[0].object_id
+            project = Project.objects.get(id=project_id)
+            feedback = '{}-{}: {}'.format(str(now)[11:19], user_name, feedback)
+            if project.is_member(user):
+                track_action(request, user, verb, event, target=project)
             else:
-                calendar = event.calendar
-                relations = CalendarRelation.objects.filter(calendar=calendar)
-                project_id = relations[0].object_id
-                project = Project.objects.get(id=project_id)
-                message = 'feedback {} from {} event "{}" in project {}'.format(feedback, actor.get_display_name(), event.title, project.name)
-                if project.is_member(actor):
-                    track_action(request, actor, verb, event, target=project)
-                else:
-                    message += ' '+'but user {} is not member of community/project {}'.format(actor.get_display_name(), project.name)
-                # push line to all raw feedback visualizers
-                event_name = 'event_{}'.format(event_id)
-                group_name = 'feedback_{}'.format(event_name)
-                feedback_item_producer(group_name, message)
-    data = {'text': message, 'group_name': group_name}
+                data['warning'] = _('user is not member of community/project')
+            # push line to all raw feedback visualizers
+            feedback_item_producer(group_name, feedback)
     return JsonResponse(data)
 
 # https://stackoverflow.com/questions/70159895/django-send-events-via-websocket-to-all-clients

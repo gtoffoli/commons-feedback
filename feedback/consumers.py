@@ -1,7 +1,9 @@
 # feedback/consumers.py
-import asyncio
 import json
 from channels.generic.websocket import AsyncWebsocketConsumer
+from django.utils import timezone
+from django.contrib.auth.models import User
+from commons.utils import unshuffle_integers
 
 class ChatConsumer(AsyncWebsocketConsumer):
 
@@ -28,6 +30,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
     async def receive(self, text_data):
         text_data_json = json.loads(text_data)
         message = text_data_json['message']
+        user_name = text_data_json['user_name']
+        time = str(timezone.now())[11:19]
+        message = '{}-{}: {}'.format(time, user_name, message)
 
         # Send message to room group
         await self.channel_layer.group_send(
@@ -71,22 +76,26 @@ class EventConsumer(AsyncWebsocketConsumer):
     # Receive message from websocket for monitoring group
     async def receive(self, feedback_data):
         feedback_data_json = json.loads(feedback_data)
+        message = feedback_data_json['text']
+        verb = message.split()[-1]
 
         # Send message to monitoring group
         await self.channel_layer.group_send(
             self.event_group_name,
             {
                 'type': feedback_data_json['type'],
-                'message': feedback_data_json['text']
+                'message': message,
+                'verb': verb,
             }
         )
 
     # Receive raw message from monitoring group
     async def raw_message(self, event):
-        print('raw_message', event)
         message = event['text']
+        verb = message.split()[-1]
 
         # Send message to WebSocket
         await self.send(text_data=json.dumps({
-            'message': message
+            'message': message,
+            'verb': verb,
         }))
