@@ -11,7 +11,7 @@ from schedule.models import Event, CalendarRelation
 from commons.models import Project
 from commons.tracking import track_action
 from commons.utils import unshuffle_integers
-from feedback.producers import feedback_item_producer, feedback_dashboard_producer
+from feedback.producers import reaction_item_producer, chat_item_producer
 
 
 def room_select(request):
@@ -91,18 +91,18 @@ def validate_event(request):
     return JsonResponse(data)
 
 @csrf_exempt
-def process_feedback(request):
-    """ Gets and processes real-time user feedback from mobile app in xAPI compatible format.
+def reaction_message(request):
+    """ Gets and processes real-time user reaction from mobile app and emit xAPI statement.
         user_id: the id of a registered user
         event_id: the id of an Event in a django-schedule Calendar associated to a Project or Community
     """
     if request.method == 'POST':
         data = json.loads(request.body.decode('utf-8'))
         event_code = data['event_code']
-        feedback = data['feedback']
+        reaction = data['message']
     else:
         event_code = request.GET.get('event_code', '')
-        feedback = request.GET.get('feedback', 'unknown')
+        reaction = request.GET.get('message', '')
     event_id, user_id = unshuffle_integers(event_code)
     users = User.objects.filter(id=user_id)
     group_name = ''
@@ -121,7 +121,7 @@ def process_feedback(request):
             event = events[0]
             event_name = 'event_{}'.format(event_id)
             data['event_name'] = event_name
-            group_name = 'feedback_{}'.format(event_name)
+            group_name = 'reaction_{}'.format(event_name)
             data['group_name'] = group_name
             now = timezone.now()
             if now < event.start or now > event.end:
@@ -130,13 +130,64 @@ def process_feedback(request):
             relations = CalendarRelation.objects.filter(calendar=calendar)
             project_id = relations[0].object_id
             project = Project.objects.get(id=project_id)
-            feedback = '{}-{}: {}'.format(str(now)[11:19], user_name, feedback)
+            message = '{}-{}: {}'.format(str(now)[11:19], user_name, reaction)
             if project.is_member(user):
                 track_action(request, user, verb, event, target=project)
             else:
                 data['warning'] = _('user is not member of community/project')
             # push line to all raw feedback visualizers
-            feedback_item_producer(group_name, feedback)
+            reaction_item_producer(group_name, message)
+    return JsonResponse(data)
+
+
+@csrf_exempt
+def chat_message(request):
+    """ Gets and processes real-time chat message from mobile app or feedback dashboard
+        and emit xAPI statement.
+        user_id: the id of a registered user
+        event_id: the id of an Event in a django-schedule Calendar associated to a Project or Community
+    """
+    if request.method == 'POST':
+        data = json.loads(request.body.decode('utf-8'))
+        event_code = data['event_code']
+        message = data['message']
+    else:
+        event_code = request.GET.get('event_code', '')
+        message = request.GET.get('message', '')
+    event_id, user_id = unshuffle_integers(event_code)
+    users = User.objects.filter(id=user_id)
+    group_name = ''
+    data = {}
+    if not users:
+        data['error'] = _('user is unknown')
+    else:
+        user = users[0]
+        user_name = user.get_display_name()
+        data['user_name'] = user_name
+        verb = 'commented'
+        events = Event.objects.filter(id=event_id)
+        if not events:
+            data['error'] = _('event is unknown')
+        else:
+            event = events[0]
+            event_name = 'event_{}'.format(event_id)
+            data['event_name'] = event_name
+            group_name = 'chat_{}'.format(event_name)
+            data['group_name'] = group_name
+            now = timezone.now()
+            if now < event.start or now > event.end:
+                data['warning'] = _('event is not running')
+            calendar = event.calendar
+            relations = CalendarRelation.objects.filter(calendar=calendar)
+            project_id = relations[0].object_id
+            project = Project.objects.get(id=project_id)
+            message = '{}-{}: {}'.format(str(now)[11:19], user_name, message)
+            if project.is_member(user):
+                track_action(request, user, verb, event, target=project)
+            else:
+                data['warning'] = _('user is not member of community/project')
+            # push line to all raw feedback visualizers
+            chat_item_producer(group_name, message)
     return JsonResponse(data)
 
 # https://stackoverflow.com/questions/70159895/django-send-events-via-websocket-to-all-clients

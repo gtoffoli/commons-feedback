@@ -4,6 +4,7 @@ app.LoadScript( "persistence.js" );
 app.LoadScript( "cover.js" );
 app.LoadScript( "session.js" );
 app.LoadScript( "keypad.js" );
+app.LoadScript( "chat.js" );
 app.LoadScript( "website.js" );
 
 //Called when application is started.
@@ -64,6 +65,11 @@ function OnStart()
   lay_keypad = addKeypad();
   app.lay_keypad = lay_keypad;
   layBody.AddChild(lay_keypad);
+
+  // Create a chat layout
+  lay_chat = addChat();
+  app.lay_chat = lay_chat;
+  layBody.AddChild(lay_chat);
 
   // Create a website layout
   lay_website = new websiteScreen();

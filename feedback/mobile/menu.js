@@ -3,6 +3,7 @@ var  menu_list = [
     {title: _('home'), fun: Home},
     {title: _('validate'), fun: validateSession},
     {title: _('attend'), fun:attendEvent},
+    {title: _('chat'), fun:Chat},
     {title: _('website'), fun:Website},
     {title: _('exit'), fun:exitApp}
 ]
@@ -52,39 +53,41 @@ function getSlideMenu(onTouch)
     return layMenu
 }
 
+function menu_hideLayouts() {
+  app.lay_cover.Gone();
+  app.lay_session.Gone();
+  app.lay_keypad.Gone();
+  app.lay_chat.Gone();
+  app.lay_website.Gone();
+}
+
 // callback function for menu selection
 function menu_OnTouch(title, body, image, index) {
   layMenu.Animate("SlidetoRight");
+  menu_hideLayouts();
   app.Execute(menu_list[index].fun());
 }
  
 function Home() {
   app.lay_cover.Show();
-  app.lay_session.Gone();
-  app.lay_keypad.Gone();
-  app.lay_website.Gone();
 }
 
 function validateSession() {
-  app.lay_cover.Gone();
   sessionRefresh(app.lay_session);
   app.lay_session.Show();
-  app.lay_keypad.Gone();
-  app.lay_website.Gone();
 }
 
 function attendEvent() {
-  app.lay_cover.Gone();
-  app.lay_session.Gone();
   sessionRefresh(app.lay_keypad);
   app.lay_keypad.Show();
-  app.lay_website.Gone();
+}
+
+function Chat() {
+  sessionRefresh(app.lay_chat);
+  app.lay_chat.Show();
 }
 
 function Website() {
-  app.lay_cover.Gone();
-  app.lay_session.Gone();
-  app.lay_keypad.Gone();
   app.lay_website.Show();
 }
 

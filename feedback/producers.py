@@ -6,14 +6,15 @@ from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
 channel_layer = get_channel_layer()
 
-def feedback_item_producer(group_name, raw_message):
+def reaction_item_producer(group_name, reaction_message):
     async_to_sync(channel_layer.group_send)(group_name, {
-        "type": "raw_message",
-        "text": raw_message
+        "type": "reaction_message",
+        "message": reaction_message
     })
 
-def feedback_dashboard_producer(event_name, dashboard_data):
-    async_to_sync(channel_layer.group_send)(event_name, {
-        "type": "dashboard_update",
-        "data": dashboard_data
+# def feedback_dashboard_producer(event_name, dashboard_data):
+def chat_item_producer(group_name, chat_message):
+    async_to_sync(channel_layer.group_send)(group_name, {
+        "type": "chat_message",
+        "message": chat_message
     })

@@ -2,7 +2,7 @@
 {% load staticfiles %}
 {% load i18n %}
 
-<!-- feedback/templates/feedback/event_log.html -->
+<!-- feedback/templates/feedback/feedback_dashboard.html -->
 
 {% block head_title %}{% trans "Student Feedback" %} - {% trans "Event Dashboard" %}{% endblock %}
 
@@ -105,7 +105,7 @@
     </div>
     <div style="float: left; width: 50%;">
       <div><label>{{ label_messages_log }}</label></div>
-      <div><textarea id="event-log" cols="60" rows="13" style="width: 100%;" readonly></textarea></div>
+      <div><textarea id="reaction-log" cols="60" rows="13" style="width: 100%;" readonly></textarea></div>
     </div>
     <div style="float: left; width: 100%; height: 30%;">
       <div><label>{{ label_chat }}</label></div>
@@ -152,15 +152,15 @@ var app = new Vue({
       { text: "recap", weight: 1 }
     ],
     label_word_cloud: "{% trans "verb cloud"|capfirst %}",
-    label_messages_log: "{% trans "raw feedback log"|capfirst %}",
+    label_messages_log: "{% trans "student reaction log"|capfirst %}",
     label_chat: "{% trans "chat"|capfirst %}",
-    label_placeholder: "{% trans "type a message and hit 'enter'" %}",
+    label_placeholder: "{% trans "type a message and hit 'enter' key" %}",
     cloud_namespace: Math.floor(Math.random() * 1000000).toString(36),
     options: {
-      width: "320",
+      width: "400",
       height: "200",
       center: {
-        x: 320 / 2.0,
+        x: 400 / 2.0,
         y: 200 / 2.0
       },
       shape: false,
@@ -314,21 +314,21 @@ var app = new Vue({
 </script>
 
 <script>
-	/* WEB SOCKET FOR EVENT-RELATED FEEDBACK */
+	/* WEB SOCKET FOR EVENT-RELATED REACTIONS */
     if (window.location.protocol == 'https:') {
       wsProtocol = 'wss://'
     } else {
       wsProtocol = 'ws://'
     }
-    eventSocket = new WebSocket(wsProtocol + window.location.host + '/ws/event/{{ event_name }}/');
-    eventSocket.onmessage = function(e) {
+    reactionSocket = new WebSocket(wsProtocol + window.location.host + '/ws/reaction/{{ event_name }}/');
+    reactionSocket.onmessage = function(e) {
         const data = JSON.parse(e.data);
         message = data.message;
-        document.querySelector('#event-log').value += (message + '\n');
+        document.querySelector('#reaction-log').value += (message + '\n');
         verb = data.verb;
         app.addWord(verb);
     };
-    eventSocket.onclose = function(e) {
+    reactionSocket.onclose = function(e) {
         console.error('Event socket closed unexpectedly');
     };
 
@@ -341,7 +341,8 @@ var app = new Vue({
     chatSocket = new WebSocket(wsProtocol + window.location.host + '/ws/chat/{{ event_name }}/');
     chatSocket.onmessage = function(e) {
         const data = JSON.parse(e.data);
-        document.querySelector('#chat-log').value += (data.message + '\n');
+        message = data.message;
+        document.querySelector('#chat-log').value += (message + '\n');
     };
     chatSocket.onclose = function(e) {
         console.error('Chat socket closed unexpectedly');
