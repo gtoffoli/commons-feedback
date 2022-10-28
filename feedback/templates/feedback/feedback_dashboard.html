@@ -324,7 +324,9 @@ var app = new Vue({
     reactionSocket.onmessage = function(e) {
         const data = JSON.parse(e.data);
         message = data.message;
-        document.querySelector('#reaction-log').value += (message + '\n');
+        textarea = document.querySelector('#reaction-log');
+        textarea.value += (message + '\n');
+        textarea.scrollTop = textarea.scrollHeight;
         verb = data.verb;
         app.addWord(verb);
     };
@@ -342,7 +344,9 @@ var app = new Vue({
     chatSocket.onmessage = function(e) {
         const data = JSON.parse(e.data);
         message = data.message;
-        document.querySelector('#chat-log').value += (message + '\n');
+        textarea = document.querySelector('#chat-log');
+        textarea.value += (message + '\n');
+        textarea.scrollTop = textarea.scrollHeight;
     };
     chatSocket.onclose = function(e) {
         console.error('Chat socket closed unexpectedly');

@@ -29,7 +29,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
     # Receive message from WebSocket
     async def receive(self, text_data):
         text_data_json = json.loads(text_data)
-        message = text_data_json['message']
+        message = text_data_json['message'].strip()
         user_name = text_data_json.get('user_name', '')
         if user_name: # input from form in dashboard template?
             now = timezone.now()
