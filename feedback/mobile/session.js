@@ -1,5 +1,6 @@
 var validate_url = 'https://www.we-collab.eu/feedback/validate/';
 app.event_code = '';
+app.event_name = '';
 
 // function setSession(edt) {
 function setSession(dlg) {
@@ -59,6 +60,7 @@ function sessionRefresh(lay) {
   var sessionObject = readPersisted();
   if ( sessionObject ) {
     app.event_code = sessionObject.event_code;
+    app.event_name = sessionObject.event_name;
     app.user_email = sessionObject.user_email;
     if (sessionObject.error)
       text = ` ${_('error_label')}: ${sessionObject.error}`;

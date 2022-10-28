@@ -83,7 +83,7 @@ def validate_event(request):
                 data['event'] = event.title
                 data['start'] = event.start
                 data['end'] = event.end
-                data['event_name'] = 'event_'.format(event_id)
+                data['event_name'] = 'event_{}'.format(event_id)
                 now = timezone.now()
                 if now < event.start or now > event.end:
                     data['warning'] =  _('event is not running')
