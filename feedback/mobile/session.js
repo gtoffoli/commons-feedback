@@ -33,7 +33,7 @@ function addSessionInfo(lay) {
   // sessionText = app.CreateText('',1,0.14,"VTop,Left,Multiline");
   sessionText = app.CreateText('',1,0.2,"VTop,Left,Multiline");
   sessionText.SetTextColor("white");
-  sessionText.SetTextSize(30,"ps");
+  sessionText.SetTextSize(24,"ps");
   lay.AddChild(sessionText);
   lay.sessionText = sessionText;
 }

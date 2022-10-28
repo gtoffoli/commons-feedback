@@ -37,11 +37,13 @@ function Connect()
 function chat_socket_onopen() {
   console.log('chat socket open');
 }
-function chat_socket_onmessage(message) {
+function chat_socket_onmessage(e) {
   console.log('chat socket message');
-  text = app.chat_log.getText();
+  data = JSON.parse(e.data);
+  message = data.message;
+  text = app.chat_log.GetText();
   text += ('\n' + message);
-  app.chat_log.setText(text);
+  app.chat_log.SetText(text);
 }
 function chat_socket_onclose() {
   console.log('chat socket closed');
@@ -69,7 +71,7 @@ function addChat() {
     chatHeading.SetTextSize(32,"ps");
     lay_chat.AddChild(chatHeading);
 
-    chatLog = app.CreateText( '', 1, 0.4, "Multiline,Left" );
+    chatLog = app.CreateText( '', 1, 0.45, "Multiline,Left" );
     chatLog.SetMargins( 0,0.02,0,0 );
     chatLog.SetBackColor("#ff66aa66");
     chatLog.SetTextColor("white");
@@ -77,10 +79,8 @@ function addChat() {
     lay_chat.AddChild( chatLog );
     app.chat_log = chatLog;
 
-    chatInput = app.CreateTextEdit( '', 1, 0.1, "Left,NoSpell" );
-    chatInput.SetMargins( 0,0.04,0,0 );
-    // chatInput.SetBackColor("#ff66aa66");
-    // chatInput.SetTextColor("white");
+    chatInput = app.CreateTextEdit( '', 1, 0.07, "Left" );
+    chatInput.SetMargins( 0,0.03,0,0 );
     chatInput.SetBackColor("white");
     chatInput.SetTextColor("black");
     chatInput.SetTextSize(24,"ps");
