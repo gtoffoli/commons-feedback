@@ -79,7 +79,7 @@ function addChat() {
     lay_chat.AddChild( chatLog );
     app.chat_log = chatLog;
 
-    chatInput = app.CreateTextEdit( '', 1, 0.07, "Left" );
+    chatInput = app.CreateTextEdit( '', 1, 0.07, "SingleLine, Left" );
     chatInput.SetMargins( 0,0.03,0,0 );
     chatInput.SetBackColor("white");
     chatInput.SetTextColor("black");

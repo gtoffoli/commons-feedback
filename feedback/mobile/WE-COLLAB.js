@@ -13,6 +13,8 @@ function OnStart()
   //clearPersisted();
   getPrivateFolder();
 
+  app.SetOrientation( "Portrait" );
+
   //Create a root layout with 2 layout .
   var lay_root=app.CreateLayout("Absolute",);
   lay_root.SetBackColor("#ff224422");

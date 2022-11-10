@@ -83,11 +83,11 @@ function sessionRefresh(lay) {
 }
 
 function ask_OnTouch() {
-  dialogTitle = _('event_code_prompt');
+  //dialogTitle = _('event_code_prompt');
   // var lay = app.CreateLayout( "Linear", "" );
   dialogWidth = 1.0;
   // eventDialog = new inputBox(dialogTitle, setSession, app.event_code, dialogWidth);
-  eventDialog = new inputBox(dialogTitle, setSession, dialogWidth);
+  eventDialog = new inputBox("", setSession, dialogWidth);
   eventDialog.SetBackColor("#333333");
   //eventDialog.SetTextColor("white");
   eventDialog.ShowWithKeyboard();
@@ -126,6 +126,7 @@ function inputBox(title, okCallback, width)
     edtCode.SetHint( _("your_code") );
     lay.AddChild( edtCode );
 
+    
     var layBtn = app.CreateLayout( "Linear", "Horizontal" );
     lay.AddChild( layBtn );
     var btnCancel = app.CreateButton( _("cancel"),-1,-1 );
@@ -144,7 +145,8 @@ function inputBox(title, okCallback, width)
  
     // public functions
     dlg.ShowKeyboard = function(  )
-    {edtCode.Focus(); app.ShowKeyboard( edtCode );}
+    //{edtCode.Focus(); app.ShowKeyboard( edtCode );}
+    {edtEmail.Focus(); app.ShowKeyboard( edtEmail );}
 
     dlg.ShowWithKeyboard=function()
     {setTimeout(dlg.ShowKeyboard, 100); dlg.Show();}
