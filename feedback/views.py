@@ -114,7 +114,7 @@ def reaction_message(request):
         user = users[0]
         user_name = user.get_display_name()
         data['user_name'] = user_name
-        verb = 'feedback'
+        verb = 'commented'
         events = Event.objects.filter(id=event_id)
         if not events:
             data['error'] = _('event is unknown')
@@ -133,7 +133,8 @@ def reaction_message(request):
             project = Project.objects.get(id=project_id)
             message = '{}-{}: {}'.format(str(now)[11:19], user_name, reaction)
             if project.is_member(user):
-                track_action(request, user, verb, event, target=project)
+                # track_action(request, user, verb, event, target=project)
+                track_action(request, user, verb, event, target=project, response=reaction)
             else:
                 data['warning'] = _('user is not member of community/project')
             # push line to all raw feedback visualizers
