@@ -42,7 +42,7 @@ function chat_socket_onmessage(e) {
   data = JSON.parse(e.data);
   message = data.message;
   text = app.chat_log.GetText();
-  text += ('\n' + message);
+  text += ( message+'\n');
   app.chat_log.SetText(text);
 }
 function chat_socket_onclose() {
@@ -73,6 +73,7 @@ function addChat() {
 
     chatLog = app.CreateText( '', 1, 0.45, "Multiline,Left" );
     chatLog.SetMargins( 0,0.02,0,0 );
+    chatLog.SetPadding( 0.018,0.011,0.018,0.11 );
     chatLog.SetBackColor("#ff66aa66");
     chatLog.SetTextColor("white");
     chatLog.SetTextSize(24,"ps");

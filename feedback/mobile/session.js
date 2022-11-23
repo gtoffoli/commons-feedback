@@ -34,6 +34,7 @@ function addSessionInfo(lay) {
   sessionText = app.CreateText('',1,0.2,"VTop,Left,Multiline");
   sessionText.SetTextColor("white");
   sessionText.SetTextSize(24,"ps");
+  sessionText.SetPadding(0.018,0,0.018,0);
   lay.AddChild(sessionText);
   lay.sessionText = sessionText;
 }
