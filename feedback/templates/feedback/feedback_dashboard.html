@@ -67,6 +67,9 @@
   font-size: 100%;
   color: #aab5f0;
 }
+.vue-tag-cloud span.last {
+  color:red !important;
+}
 .vue-tag-cloud a { color: inherit; }
 .vue-tag-cloud a:hover { color: #0df; }
 .vue-tag-cloud a:hover { color: #0cf; }
@@ -85,6 +88,9 @@
       <br><span style="font-size: smaller;">
         {% trans "project"|capfirst %}: <i>{{ project_name }}</i> -
         {% trans "event"|capfirst %}: <i>{{ event_title }}</i>
+        {% if not_running %}
+        	(<span style="color: red;">{% trans "event not running" %}</span>)
+        {% endif %}
         </span></h3>
   </div>
 {% endblock nav_vue %}
@@ -140,17 +146,10 @@ var app = new Vue({
   watch: {},
   data: {
     error: null,
-    word_array: [
-      { text: "go on!", weight: 1, link: "https://google.com" },
-      { text: "slower", weight: 1 },
-      { text: "louder", weight: 1 },
-      { text: "pause", weight: 1 },
-      { text: "repeat", weight: 1 },
-      { text: "explain", weight: 1 },
-      { text: "context", weight: 1 },
-      { text: "example", weight: 1 },
-      { text: "recap", weight: 1 }
-    ],
+	word_array: {{ word_array|safe }},
+    decay_factor: 5,
+    timer: 0,
+    last_word: null,
     label_word_cloud: "{% trans "verb cloud"|capfirst %}",
     label_messages_log: "{% trans "student reaction log"|capfirst %}",
     label_chat: "{% trans "chat"|capfirst %}",
@@ -172,17 +171,32 @@ var app = new Vue({
   el: '#app',
   mounted() {
     this.redraw_words();
+    this.timer = setInterval(() => {
+      this.decay();
+    }, 10000);
   },
   methods: {
     addWord(word) {
       this.word_array.forEach(
           function(elem, index) {
             if (elem['text'] === word) {
-              elem['weight'] += 1;
-            };
+              elem['weight'] += 0.5;
+              elem['last'] = true;
+            } else elem['last'] = false;
           });
       this.redraw_words();
     },
+    decay() {
+      this.word_array.forEach(
+          function(elem, index) {
+            var over = elem['weight'] - 1;
+            if (over > 0.2)
+				elem['weight'] -= over/app.decay_factor;
+			else
+				elem['weight'] = 1;
+          });
+      this.redraw_words();
+	},
     redraw_words() {
       document.getElementById("vue-tag-cloud").innerHTML = '';
       this.already_placed_words = [];
@@ -258,6 +272,8 @@ var app = new Vue({
       // Create a new span and insert node.
       word_span = document.createElement("span");
       word_span.className = "w" + weight;
+      if (word.last)
+        word_span.className += ' last';
       var textNode = document.createTextNode(word.text);
       word_span.appendChild(textNode);
       if(typeof word.link !== 'undefined'){
