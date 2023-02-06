@@ -1,9 +1,9 @@
 # feedback/consumers.py
 import json
 from channels.generic.websocket import AsyncWebsocketConsumer
+import pytz
 from django.conf import settings
 from django.utils import timezone
-from django.contrib.auth.models import User
 from commons.utils import unshuffle_integers
 
 class ChatConsumer(AsyncWebsocketConsumer):
@@ -34,7 +34,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
         user_name = text_data_json.get('user_name', '')
         if user_name: # input from form in dashboard template?
             now = timezone.now()
-            message = '{}-{}: {}'.format(str(now.astimezone(settings.TIME_ZONE))[11:19], user_name, message)
+            CET = pytz.timezone(settings.TIME_ZONE)
+            message = '{}-{}: {}'.format(str(now.astimezone(CET))[11:19], user_name, message)
 
         # Send message to room group
         await self.channel_layer.group_send(

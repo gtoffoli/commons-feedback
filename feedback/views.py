@@ -1,6 +1,7 @@
 # feedback/views.py
 
 import json
+import pytz
 from django.conf import settings
 from django.http import JsonResponse
 from django.shortcuts import render
@@ -108,8 +109,9 @@ def validate_event(request):
             else:
                 event = events[0]
                 data['event'] = event.title
-                data['start'] = event.start.astimezone(settings.TIME_ZONE)
-                data['end'] = event.end.astimezone(settings.TIME_ZONE)
+                CET = pytz.timezone(settings.TIME_ZONE)
+                data['start'] = event.start.astimezone(CET)
+                data['end'] = event.end.astimezone(CET)
                 data['event_name'] = 'event_{}'.format(event_id)
                 now = timezone.now()
                 if now < event.start or now > event.end:
@@ -161,7 +163,8 @@ def reaction_message(request):
                 relations = CalendarRelation.objects.filter(calendar=calendar)
                 project_id = relations[0].object_id
                 project = Project.objects.get(id=project_id)
-                message = '{}-{}: {}'.format(str(now.astimezone(settings.TIME_ZONE))[11:19], user_name, reaction)
+                CET = pytz.timezone(settings.TIME_ZONE)
+                message = '{}-{}: {}'.format(str(now.astimezone(CET))[11:19], user_name, reaction)
                 if not project.is_member(user):
                     data['warning'] = _('user is not member of community/project')
                 else:
@@ -212,7 +215,8 @@ def chat_message(request):
                 relations = CalendarRelation.objects.filter(calendar=calendar)
                 project_id = relations[0].object_id
                 project = Project.objects.get(id=project_id)
-                message = '{}-{}: {}'.format(str(now.astimezone(settings.TIME_ZONE))[11:19], user_name, message)
+                CET = pytz.timezone(settings.TIME_ZONE)
+                message = '{}-{}: {}'.format(str(now.astimezone(CET))[11:19], user_name, message)
                 if not project.is_member(user):
                     data['warning'] = _('user is not member of community/project')
                 else:
