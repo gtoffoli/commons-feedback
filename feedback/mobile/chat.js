@@ -53,10 +53,13 @@ function chat_socket_onerror() {
 }
 
 function chat_OnEnter() {
+  var sessionObject = readPersisted();
   app.HideKeyboard();
-  message = app.chat_input.GetText().trim();
-  sendChatMessage(message);
-  app.chat_input.SetText('');
+  if (!sessionObject.error && !sessionObject.warning) {
+    message = app.chat_input.GetText().trim();
+    sendChatMessage(message);
+    app.chat_input.SetText('');
+  }
 }
 
 function addChat() {
@@ -64,7 +67,7 @@ function addChat() {
     lay_chat = app.CreateLayout( "linear", "Vertical,FillXY" );
 
     addSessionInfo(lay_chat);
-    sessionRefresh(lay_chat);
+    sessionRefresh(lay_chat, false);
 
     chatHeading = app.CreateText(_('chat_label'),1,0.06,"VBottom,Center, Bold");
     chatHeading.SetTextColor("white");

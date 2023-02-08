@@ -95,7 +95,7 @@ function exitApp()
 {
     var c = confirm("Exit app?");
     if(c)
-    {
-        app.Exit();
-    }
+      app.Exit();
+    else
+      layMenu.Show();
 }

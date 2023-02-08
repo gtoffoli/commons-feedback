@@ -2,14 +2,24 @@ var validate_url = 'https://www.we-collab.eu/feedback/validate/';
 app.event_code = '';
 app.event_name = '';
 
-// function setSession(edt) {
-function setSession(dlg) {
-    // var event_code = this.GetText();
-    var user_email = this.email.GetText();
-    var event_code = this.code.GetText();
-    // var data = { event_code: event_code };
-    var data = { event_code: event_code, user_email: user_email };
-    var body = JSON.stringify( data );
+// retry argument is true if called from sessionRefresh
+function setSession(lay=app.lay_session, retry=false) {
+    var sessionObject, data, body;
+    var user_email = null, event_code = null;
+    if (retry) {
+      sessionObject = readPersisted();
+      if (sessionObject) {
+        user_email = sessionObject.user_email;
+        event_code = sessionObject.event_code;
+	  }
+	} else {
+      user_email = this.email.GetText();
+      event_code = this.code.GetText();
+    }
+    if (!user_email || !event_code)
+      return;
+    data = { event_code: event_code, user_email: user_email };
+    body = JSON.stringify( data );
     fetch(validate_url, {
       method: "POST",
       body: body,
@@ -18,7 +28,8 @@ function setSession(dlg) {
     .then(response => response.json())
     .then(data => {
       writePersisted( data );
-      sessionRefresh(null);
+      // sessionRefresh(null);
+      sessionRefresh(lay=lay, show_error=true); 
     })
     .catch(err => { app.Debug( err ) });
 }
@@ -42,7 +53,7 @@ function addSessionInfo(lay) {
 function sessionScreen() {
   this.lay = app.CreateLayout( "linear", "Vertical, FillXY" );
   addSessionInfo(this.lay)
-  sessionRefresh(this.lay);
+  sessionRefresh(this.lay, show_error=false);
 
   var new_code_button = app.CreateButton( _('event_code_new') );
   new_code_button.SetBackColor("#ff66aa66");
@@ -57,16 +68,21 @@ function formatEventDate(date) {
   return date.substring(0, 10) + ` ` + date.substring(11, 16);
 }
 
-function sessionRefresh(lay) {
+// function sessionRefresh() {
+function sessionRefresh(lay, show_error=false) {
+  if (!show_error)
+    setSession(lay=lay, retry=true); // retry session validation with persisted data
   var sessionObject = readPersisted();
-  if ( sessionObject ) {
+  if (sessionObject) {
     app.event_code = sessionObject.event_code;
     app.event_name = sessionObject.event_name;
     app.user_email = sessionObject.user_email;
     if (sessionObject.error)
-      text = ` ${_('error_label')}: ${sessionObject.error}`;
+      if (show_error)
+        text = `\n ${_('error_label')}: ${sessionObject.error}`;
+      else
+        text = `\n ${_('no_session')}`;
     else {
-      // text = `  ${_('user_label')}: ${sessionObject.user}\n  ${_('event_label')}: ${sessionObject.event}`;
       text  = ` ${_('user_label')}: ${sessionObject.user}\n`;
       text += ` ${_('event_label')}: ${sessionObject.event}\n`;
       text += ` ${_('start_label')}: ${formatEventDate(sessionObject.start)}\n`;
@@ -75,7 +91,7 @@ function sessionRefresh(lay) {
         text += ` ${_('warning_label')}: ${sessionObject.warning}`;
     }
   } else
-    text = _('no_session');
+    text = `\n ${_('no_session')}`;
   if (lay === null) {
     app.lay_session.sessionText.SetText(text);
   }
@@ -84,13 +100,9 @@ function sessionRefresh(lay) {
 }
 
 function ask_OnTouch() {
-  //dialogTitle = _('event_code_prompt');
-  // var lay = app.CreateLayout( "Linear", "" );
   dialogWidth = 1.0;
-  // eventDialog = new inputBox(dialogTitle, setSession, app.event_code, dialogWidth);
   eventDialog = new inputBox("", setSession, dialogWidth);
   eventDialog.SetBackColor("#333333");
-  //eventDialog.SetTextColor("white");
   eventDialog.ShowWithKeyboard();
 }
 
@@ -100,7 +112,6 @@ function ask_OnTouch() {
    title (optional) dialog title, suppressed if empty
    okCallback (required) function called when Ok touched
    width (optional) 0 to 1 used when creating TextBox */
-// function inputBox(title, okCallback, hint, width)
 function inputBox(title, okCallback, width)
 {
     var options = "NoCancel";
@@ -139,14 +150,12 @@ function inputBox(title, okCallback, width)
     btnOk.SetBackColor("#ff66aa66");
     btnOk.SetTextSize(30,"ps");
     layBtn.AddChild( btnOk );    
-    // btnOk.SetOnTouch( function() {okCallback.call(edtCode); dlg.Dismiss()} );
     dlg.email = edtEmail;
     dlg.code = edtCode;
     btnOk.SetOnTouch( function() {okCallback.call(dlg); dlg.Dismiss()} );
  
     // public functions
     dlg.ShowKeyboard = function(  )
-    //{edtCode.Focus(); app.ShowKeyboard( edtCode );}
     {edtEmail.Focus(); app.ShowKeyboard( edtEmail );}
 
     dlg.ShowWithKeyboard=function()

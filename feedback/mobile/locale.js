@@ -21,7 +21,7 @@ var string_map = {
   cancel: { en: "Cancel", it:"Annulla"},
   your_email: { en: "Your email", it:"La tua email"},
   your_code: { en: "Your event code", it:"Il tuo codice dell'evento"},
-  go_on: { en: "go on", it:"continua"},
+  go_on: { en: "go-on", it:"continua"},
   slower: { en: "slower", it:"più lentamente"},
   louder: { en: "louder", it:"più forte"},
   pause: { en: "pause", it:"pausa"},

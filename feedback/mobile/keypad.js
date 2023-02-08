@@ -1,5 +1,8 @@
 function sendReaction()
 {
+    var sessionObject = readPersisted();
+    if (sessionObject.error || sessionObject.warning)
+        return;
     var message = this.GetText();
     var data = { message: message, event_code: app.event_code };
     var body = JSON.stringify(data);
@@ -20,7 +23,7 @@ function addKeypad() {
     lay_2 = app.CreateLayout( "linear", "Vertical,FillXY" );
 
     addSessionInfo(lay_2);
-    sessionRefresh(lay_2);
+    sessionRefresh(lay_2, false);
 
     //Add a 3x3 button matrix 
 
