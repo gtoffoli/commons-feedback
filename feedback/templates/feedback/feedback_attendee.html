@@ -1,0 +1,105 @@
+{% load staticfiles %}
+{% load i18n %}
+{% load scheduletags %}
+
+<html>
+<head>
+	<title>{% trans "WE-COLLAB Feedback" %}</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link rel="shortcut icon" href="/static/commons/img/commons.ico" type="image/x-icon">
+	<link rel="apple-touch-icon" href="/static/commons/img/commons_icon.png" type="image/png">
+<style>
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  height: 100%;
+}
+h3 {
+  text-align: center;
+}
+h4 {
+  text-align: center;
+  margin-block-start: 0.5em;
+  margin-block-end: 0.5em;
+}
+.header {
+  background-color: black;
+  color: white;
+  margin: 0;
+  padding: 0.8em;
+}
+.body {
+  background-color: #224422;
+  color: white;
+  margin: 0;
+  padding: 0.8em;
+}
+ul.grid-container {
+  width: 100%;
+  text-align: center;
+  list-style-type: none;
+}
+.grid-container {
+  display: grid;
+  grid-template-columns: auto auto auto;
+  padding: 0;
+}
+.grid-item {
+  border: 1px solid #66aa66;
+  border-radius: 0.6em;
+  color: white;
+  background-color: #66aa66;
+  margin: 0.1em;
+  padding: 1.2em;
+  font-size: larger;
+  text-align: center;
+  vertical-align: middle;
+  {% if not not_running %}cursor: pointer;{% endif %}
+}
+</style>
+
+<script>
+function reaction(event_code, message) {
+	data = {event_code: event_code, message: message};
+    fetch('/feedback/reaction/', {
+      method: 'POST',
+      headers: { "Content-Type": "application/json", "X-Requested-With": "XMLHttpRequest" },
+      body: JSON.stringify(data)
+   	})
+    .then(response => response.json())
+    .then(data => {
+		console.log(data);
+		warning = data['warning'];
+		if (!(warning === undefined))
+			window.alert(warning);
+    })
+    .catch(err => (window.alert(err)))
+}
+</script>
+</head>
+
+<body>
+  <div class="header">
+  <h3 class="text-center">{% trans "WE-COLLAB Feedback" %}</h3>
+  </div>
+  <div class="body">
+  <h4>{% trans "session info" %}</h4>
+  <div>{% trans "user" %}: <i>{{ user_name }}</i></div>
+  <div>{% trans "project" %}: <i>{{ project_name }}</i></div>
+  <div>{% trans "event" %}: <i>{{ event_title }}</i></div>
+  <div>{% trans "start date" %}: <i>{% blocktrans with event.start|date:_("DATETIME_FORMAT") as start_date %}{{ start_date }}{% endblocktrans %}</i></div>
+  <div>{% trans "end date" %}: <i>{% blocktrans with event.end|date:_("DATETIME_FORMAT") as end_date %}{{ end_date }}{% endblocktrans %}</i></div>
+  {% if not_running %}
+  <div style="color: red;">{% trans "warning" %}: {% trans "event not running" %}</div>
+  {% endif %}
+
+    <div id="app" class='components-container'>
+      <ul class="grid-container">
+		{% for item in word_array %}
+		  <li class="grid-item btn btn-default" onClick="reaction('{{ event_code }}','{{ item.text }}');">{{ item.label }}</li>
+		{% endfor %}
+	  </ul>
+    </div>
+  </div>
+</body>
+</html>

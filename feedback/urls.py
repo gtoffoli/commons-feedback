@@ -5,6 +5,7 @@ from feedback import views
 
 urlpatterns = [
     path('dashboard/<str:event_code>/', views.feedback_dashboard, name='feedback_dashboard'),
+    path('attendee/<int:event_id>/', views.feedback_attendee, name='feedback_attendee'),
     path('validate/', views.validate_event, name="validate_event"),
     path('reaction/', views.reaction_message, name="reaction_message"),
     path('chat/', views.chat_message, name="chat_message"),

@@ -13,7 +13,7 @@ from django.contrib.auth.models import User
 from schedule.models import Event, CalendarRelation
 from commons.models import Project
 from commons.tracking import track_action
-from commons.utils import unshuffle_integers
+from commons.utils import private_code, unshuffle_integers
 from feedback.producers import reaction_item_producer, chat_item_producer
 # from future.backports.test.pystone import FALSE
 
@@ -73,6 +73,34 @@ def feedback_dashboard(request, event_code):
                 'VUE': True,
             })
     return render(request, 'feedback/feedback_dashboard.html', {
+       'error': _('an invalid event code was specified')                                             
+    })
+
+def feedback_attendee(request, event_id):
+    user = request.user
+    user_name = user.get_display_name()
+    event_name = 'event_{}'.format(event_id)
+    events = Event.objects.filter(id=event_id)
+    if events:
+        event = events[0]
+        event_code = private_code(event, user.id)
+        calendar = event.calendar
+        relations = CalendarRelation.objects.filter(calendar=calendar)
+        now = timezone.now()
+        not_running = now < event.start or now > event.end
+        project_id = relations[0].object_id
+        project = Project.objects.get(id=project_id)
+        return render(request, 'feedback/feedback_attendee.html', {
+            'user_name': user_name,
+            'event': event,
+            'event_code': event_code,
+            'event_name': event_name,
+            'event_title': event.title,
+            'project_name': project.name,
+            'not_running': not_running,
+            'word_array': word_array(),
+        })
+    return render(request, 'feedback/feedback_attendee.html', {
        'error': _('an invalid event code was specified')                                             
     })
 
