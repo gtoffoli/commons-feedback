@@ -2,40 +2,118 @@
 {% load i18n %}
 {% load scheduletags %}
 
-<html>
+<!DOCTYPE html>
+<html lang="{{ LANGUAGE_CODE }}">
 <head>
 	<title>{% trans "WE-COLLAB Feedback" %}</title>
 	<meta charset="utf-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<link rel="shortcut icon" href="/static/commons/img/commons.ico" type="image/x-icon">
-	<link rel="apple-touch-icon" href="/static/commons/img/commons_icon.png" type="image/png">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<link rel="apple-touch-icon" sizes="57x57" href="{% static "we-collab/img/apple-icon-57x57.png" %}">
+<link rel="apple-touch-icon" sizes="60x60" href="{% static "we-collab/img/apple-icon-60x60.png" %}">
+<link rel="apple-touch-icon" sizes="72x72" href="{% static "we-collab/img/apple-icon-72x72.png" %}">
+<link rel="apple-touch-icon" sizes="76x76" href="{% static "we-collab/img/apple-icon-76x76.png" %}">
+<link rel="apple-touch-icon" sizes="114x114" href="{% static "we-collab/img/apple-icon-114x114.png" %}">
+<link rel="apple-touch-icon" sizes="120x120" href="{% static "we-collab/img/apple-icon-120x120.png" %}">
+<link rel="apple-touch-icon" sizes="144x144" href="{% static "we-collab/img/apple-icon-144x144.png" %}">
+<link rel="apple-touch-icon" sizes="152x152" href="{% static "/we-collab/img/apple-icon-152x152.png" %}">
+<link rel="apple-touch-icon" sizes="180x180" href="{% static "we-collab/img/apple-icon-180x180.png" %}">
+<link rel="icon" type="image/png" sizes="192x192"  href="{% static "we-collab/img/android-icon-192x192.png" %}">
+<link rel="icon" type="image/png" sizes="32x32" href="{% static "we-collab/img/favicon-32x32.png" %}">
+<link rel="icon" type="image/png" sizes="96x96" href="{% static "we-collab/img/favicon-96x96.png" %}">
+<link rel="icon" type="image/png" sizes="16x16" href="{% static "we-collab/img/favicon-16x16.png" %}">
+<link rel="manifest" href="/manifest.json">
+<meta name="msapplication-TileColor" content="#ffffff">
+<meta name="msapplication-TileImage" content="{% static "we-collab/img/ms-icon-144x144.png" %}">
+<meta name="theme-color" content="#ffffff">
+	<link href="{% static "bootstrap/css/bootstrap.css" %}" rel="stylesheet">
+	<script src="{% static "jquery/js/jquery-2.1.4.min.js" %}"></script>
+  <script src="https://use.fontawesome.com/d391635073.js"></script>
 <style>
 body {
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: 'Open Sans', sans-serif;
   height: 100%;
-}
-h3 {
-  text-align: center;
+  background-color: #224422;
+  color: white;
 }
 h4 {
   text-align: center;
-  margin-block-start: 0.5em;
-  margin-block-end: 0.5em;
+  font-size: 1.6em;
+  padding-bottom: 0.6em;
 }
-.header {
+h3.header {
   background-color: black;
-  color: white;
-  margin: 0;
-  padding: 0.8em;
+  padding: 0.6em 0 0.6em 0;
+  margin-top:0;
+  margin-bottom:0;
+  text-align: center;
+  font-size: 1.8em;
 }
-.body {
-  background-color: #224422;
-  color: white;
-  margin: 0;
-  padding: 0.8em;
+h3.header span {
+  float: right;
+  margin-right: 0.5em;
+  padding: 0.2em 0.6em;
+  background-color: #66aa66;
+  border-radius: 4px;
+  font-size: 1em;
+  font-weight: 600;
+}
+h3.header span a {
+  color: #fff;
+  text-decoration: none;
+  cursor: pointer;
+ }
+.menu{
+  width:200px;
+  height:100%;
+  position:fixed;
+  right:-200px;
+  background:#66aa66; 
+}
+.menu ul {
+  margin-top: 1em;
+  padding-left: 0;
+  list-style-type: none;
+  font-size: 1.2em;
+  font-weight: 600;
+}
+.menu ul li {
+  margin-bottom: 1em;
+  padding-left: 1em;
+  padding-bottom:0.5em;
+  border-bottom: 1px solid #224422;
+}
+.menu a{
+  color: #fff;
+  text-decoration: none;
+  cursor: pointer;
+}
+.dl-horizontal {
+  margin-bottom: 0;
+}
+
+.space-bottom  {
+  margin-bottom:1em;
+}
+.txt-warning {
+  color: orange;
+  font-size: 1.3em;
+}
+@media (max-width: 430px) {
+  .dl-horizontal dt {
+    display:inline-block;
+  }
+  .dl-horizontal dd {
+    display:inline-block;
+    padding-left: 0.5em;
+  }
+  .dl-horizontal {
+    font-size: 1.1em;
+  }
+  .txt-warning {
+    font-size: 1.4em;
+  }
 }
 ul.grid-container {
-  width: 100%;
   text-align: center;
   list-style-type: none;
 }
@@ -46,15 +124,16 @@ ul.grid-container {
 }
 .grid-item {
   border: 1px solid #66aa66;
-  border-radius: 0.6em;
   color: white;
   background-color: #66aa66;
-  margin: 0.1em;
-  padding: 1.2em;
-  font-size: larger;
+  margin: 0.2em;
+  padding: 1.2em 0 1.2em 0;
+  font-size: 1.3em;
   text-align: center;
-  vertical-align: middle;
-  {% if not not_running %}cursor: pointer;{% endif %}
+}
+ul.grid-container li.grid-item.btn:hover {
+    color: white;
+    background-color: #224422;
 }
 </style>
 
@@ -79,27 +158,59 @@ function reaction(event_code, message) {
 </head>
 
 <body>
-  <div class="header">
-  <h3 class="text-center">{% trans "WE-COLLAB Feedback" %}</h3>
+  <h3 class="header">
+    <div class="container">{% trans "WE-COLLAB Feedback" %}
+    <span><a id="menuButton"><i class="fa fa-bars" aria-hidden="true"></i></a></span></div>
+  </h3>
+  <div class="menu">
+    <ul>
+      <li><a href="#">{% trans "attend and react" %}</a></li>
+      <li><a href="#">{% trans "chat" %}</a></li>
+      <li><a href="javascript: self.close ()">{% trans "exit" %}</a></li>
+    </ul>
   </div>
-  <div class="body">
-  <h4>{% trans "session info" %}</h4>
-  <div>{% trans "user" %}: <i>{{ user_name }}</i></div>
-  <div>{% trans "project" %}: <i>{{ project_name }}</i></div>
-  <div>{% trans "event" %}: <i>{{ event_title }}</i></div>
-  <div>{% trans "start date" %}: <i>{% blocktrans with event.start|date:_("DATETIME_FORMAT") as start_date %}{{ start_date }}{% endblocktrans %}</i></div>
-  <div>{% trans "end date" %}: <i>{% blocktrans with event.end|date:_("DATETIME_FORMAT") as end_date %}{{ end_date }}{% endblocktrans %}</i></div>
-  {% if not_running %}
-  <div style="color: red;">{% trans "warning" %}: {% trans "event not running" %}</div>
-  {% endif %}
-
-    <div id="app" class='components-container'>
+  <div class="container">
+    <h4>{% trans "session info" %}</h4>
+    <dl class="dl-horizontal space-bottom">
+      <dt>{% trans "user" %}:</dt><dd>{{ user_name }}</dd>
+    </dl>
+    <dl class="dl-horizontal space-bottom">
+      <dt>{% trans "project" %}:</dt><dd>{{ project_name }}</dd>
+    </dl>
+    <dl class="dl-horizontal">
+      <dt>{% trans "event" %}:</dt><dd>{{ event_title }}</dd>
+    </dl>
+    <dl class="dl-horizontal">
+      <dt>{% trans "start date" %}:</dt><dd>{% blocktrans with event.start|date:_("DATETIME_FORMAT") as start_date %}{{ start_date }}{% endblocktrans %}</dd>
+    </dl>
+    <dl class="dl-horizontal space-bottom">
+      <dt>{% trans "end date" %}:</dt><dd>{% blocktrans with event.end|date:_("DATETIME_FORMAT") as end_date %}{{ end_date }}{% endblocktrans %}</dd>
+    </dl>
+    {% if not_running %}
+      <dl class="dl-horizontal space-bottom txt-warning" style="">
+        <dt>{% trans "warning" %}:</dt><dd>{% trans "event not running" %}</</dd>
+      </dl>
+    {% endif %}
+    <div>
       <ul class="grid-container">
-		{% for item in word_array %}
-		  <li class="grid-item btn btn-default" onClick="reaction('{{ event_code }}','{{ item.text }}');">{{ item.label }}</li>
-		{% endfor %}
-	  </ul>
+      {% for item in word_array %}
+        <li class="grid-item btn" onClick="reaction('{{ event_code }}','{{ item.text }}');">{{ item.label }}</li>
+      {% endfor %}
+      </ul>
     </div>
   </div>
 </body>
-</html>
+<script>
+$('#menuButton').click(function() {
+  if ($('#menuButton i').hasClass("fa fa-bars")) {
+    $('.menu').animate({"right":"0"}, 1000);
+    $('#menuButton i').attr("class","fa fa-times");
+  } else {
+    $('.menu').animate({"right":"-200px"}, 1000);
+    $('#menuButton i').attr("class","fa fa-bars");
+  }
+});
+
+</script>
+
+</html> 
