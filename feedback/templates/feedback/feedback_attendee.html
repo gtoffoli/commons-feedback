@@ -27,7 +27,8 @@
 <meta name="theme-color" content="#ffffff">
 	<link href="{% static "bootstrap/css/bootstrap.css" %}" rel="stylesheet">
 	<script src="{% static "jquery/js/jquery-2.1.4.min.js" %}"></script>
-  <script src="https://use.fontawesome.com/d391635073.js"></script>
+    <script src="https://use.fontawesome.com/d391635073.js"></script>
+    <script src='https://unpkg.com/vue@2.2.6'></script>
 <style>
 body {
   font-family: 'Open Sans', sans-serif;
@@ -37,8 +38,8 @@ body {
 }
 h4 {
   text-align: center;
-  font-size: 1.6em;
-  padding-bottom: 0.6em;
+  font-size: 1.2em;
+  padding-bottom: 0.3em;
 }
 h3.header {
   background-color: black;
@@ -92,11 +93,11 @@ h3.header span a {
 }
 
 .space-bottom  {
-  margin-bottom:1em;
+  margin-bottom:0.8em;
 }
 .txt-warning {
   color: orange;
-  font-size: 1.3em;
+  font-size: 1.2em;
 }
 @media (max-width: 430px) {
   .dl-horizontal dt {
@@ -138,22 +139,6 @@ ul.grid-container li.grid-item.btn:hover {
 </style>
 
 <script>
-function reaction(event_code, message) {
-	data = {event_code: event_code, message: message};
-    fetch('/feedback/reaction/', {
-      method: 'POST',
-      headers: { "Content-Type": "application/json", "X-Requested-With": "XMLHttpRequest" },
-      body: JSON.stringify(data)
-   	})
-    .then(response => response.json())
-    .then(data => {
-		console.log(data);
-		warning = data['warning'];
-		if (!(warning === undefined))
-			window.alert(warning);
-    })
-    .catch(err => (window.alert(err)))
-}
 </script>
 </head>
 
@@ -162,55 +147,175 @@ function reaction(event_code, message) {
     <div class="container">{% trans "WE-COLLAB Feedback" %}
     <span><a id="menuButton"><i class="fa fa-bars" aria-hidden="true"></i></a></span></div>
   </h3>
+{% verbatim %}
+<div id="app" class='components-container'>
   <div class="menu">
     <ul>
-      <li><a href="#">{% trans "attend and react" %}</a></li>
-      <li><a href="#">{% trans "chat" %}</a></li>
-      <li><a href="javascript: self.close ()">{% trans "exit" %}</a></li>
+      <li><a href="#" v-on:click="set_screen('select')">{{ label_select }}</a></li>
+      <li><a href="#" v-on:click="set_screen('react')">{{ label_react }}</a></li>
+      <li><a href="#" v-on:click="set_screen('chat')">{{ label_chat }}</a></li>
+      <li><a href="javascript: self.close ()">{{ label_exit }}</a></li>
     </ul>
   </div>
+
   <div class="container">
-    <h4>{% trans "session info" %}</h4>
-    <dl class="dl-horizontal space-bottom">
-      <dt>{% trans "user" %}:</dt><dd>{{ user_name }}</dd>
-    </dl>
-    <dl class="dl-horizontal space-bottom">
-      <dt>{% trans "project" %}:</dt><dd>{{ project_name }}</dd>
+    <h4>{{ label_session_info }}</h4>
+    <dl class="dl-horizontal">
+      <dt>{{ label_user }}:</dt><dd>{{ user_name }}</dd>
     </dl>
     <dl class="dl-horizontal">
-      <dt>{% trans "event" %}:</dt><dd>{{ event_title }}</dd>
+      <dt>{{ label_project }}:</dt><dd>{{ project_name }}</dd>
     </dl>
     <dl class="dl-horizontal">
-      <dt>{% trans "start date" %}:</dt><dd>{% blocktrans with event.start|date:_("DATETIME_FORMAT") as start_date %}{{ start_date }}{% endblocktrans %}</dd>
+      <dt>{{ label_event }}:</dt><dd>{{ event_title }}</dd>
+    </dl>
+    <dl class="dl-horizontal">
+      <dt>{{ label_start_date}}:</dt><dd>{{ start_date }}</dd>
     </dl>
     <dl class="dl-horizontal space-bottom">
-      <dt>{% trans "end date" %}:</dt><dd>{% blocktrans with event.end|date:_("DATETIME_FORMAT") as end_date %}{{ end_date }}{% endblocktrans %}</dd>
+      <dt>{{ label_end_date }}:</dt><dd>{{ end_date }}</dd>
     </dl>
-    {% if not_running %}
-      <dl class="dl-horizontal space-bottom txt-warning" style="">
-        <dt>{% trans "warning" %}:</dt><dd>{% trans "event not running" %}</</dd>
-      </dl>
-    {% endif %}
-    <div>
+    <dl v-if="not_running" class="dl-horizontal space-bottom txt-warning" style="">
+      <dt>{{ label_warning }}:</dt><dd>{{ label_not_running }}</dl</dd>
+    </dl>
+
+    <div v-if="screen=='select'">
+      <h4>{{ label_select }}</h4>
+    </div>
+
+    <div v-if="screen=='react'">
+      <h4>{{ label_react }}</h4>
       <ul class="grid-container">
-      {% for item in word_array %}
-        <li class="grid-item btn" onClick="reaction('{{ event_code }}','{{ item.text }}');">{{ item.label }}</li>
-      {% endfor %}
+        <li v-for="item in word_array" class="grid-item btn" v-on:click="reaction('{{ event_code }}','{{ item.text }}')">{{ item.label }}</li>
       </ul>
     </div>
+
+    <div v-if="screen=='chat'" style="float: left; width: 100%;">
+      <h4>{{ label_chat }}</h4>
+      <div><textarea class="form-control" name="chat_log" v-model="chat_log" cols="120" rows="10" style="width: 100%;" readonly></textarea></div>
+      <div><input type="text" class="form-control" name="chat_message" v-model="chat_message" v-on:keyup.enter="send_chat_message" ref="chat_message_input" cols="120" rows="1" style="width: 100%;" :placeholder="label_placeholder"></input></div>
+    </div>
+
+    <div v-if="screen=='chat'">
+    </div>
+
   </div>
-</body>
+</div>
+{% endverbatim %}
+
 <script>
 $('#menuButton').click(function() {
   if ($('#menuButton i').hasClass("fa fa-bars")) {
-    $('.menu').animate({"right":"0"}, 1000);
+    $('.menu').animate({"right":"0"}, 500);
     $('#menuButton i').attr("class","fa fa-times");
   } else {
-    $('.menu').animate({"right":"-200px"}, 1000);
+    $('.menu').animate({"right":"-200px"}, 500);
     $('#menuButton i').attr("class","fa fa-bars");
   }
 });
 
+var app = new Vue({
+  el: '#app',
+  data: {
+	screen: "react",
+    user_name: "{{ user_name }}",
+    project_name: "{{ project_name }}",
+    event_name: "{{ event_name }}",
+    event_title: "{{ event_title }}",
+    start_date: "{% blocktrans with event.end|date:_("DATETIME_FORMAT") as start_date %}{{ start_date }}{% endblocktrans %}",
+    end_date: "{% blocktrans with event.end|date:_("DATETIME_FORMAT") as end_date %}{{ end_date }}{% endblocktrans %}",
+    not_running: true,
+    chat_message: '',
+    chat_log: '',
+    readonly: 'readonly',
+    ws_protocol: '',
+    chat_socket: null,
+    label_session_info: "{% trans "session info" %}",
+    label_user: "{% trans "user" %}",
+    label_project: "{% trans "project" %}",
+    label_event: "{% trans "event" %}",
+    label_start_date: "{% trans "start date" %}",
+    label_end_date: "{% trans "end date" %}",
+    label_warning: "{% trans "warning" %}",
+    label_not_running: "{% trans "event not running" %}",
+    label_select: "{% trans "select event" %}",
+    label_react: "{% trans "react" %}",
+    label_chat: "{% trans "chat" %}",
+    label_chat_log: "{% trans "chat log" %}",
+    label_exit: "{% trans "exit" %}",
+    label_placeholder: "{% trans "type a message and hit 'enter' key" %}",
+    word_array: {{ word_array|safe }},
+  },
+  created: function () {
+    console.log('created');
+    if (window.location.protocol == 'https:') {
+      this.ws_protocol = 'wss://'
+    } else {
+      this.ws_protocol = 'ws://'
+    };
+	this.chat_socket = new WebSocket(this.ws_protocol + window.location.host + '/ws/chat/' + this.event_name + '/');
+    this.chat_socket.onopen = function(event) {
+      console.log('Successfully connected to the chat socket server');
+    };
+  },
+  mounted: function () {
+    console.log('mounted');
+    this.chat_socket.onmessage = (event) => {
+      console.log(event);
+      data = JSON.parse(event.data);
+      chat_message = data.message;
+      if (this.chat_log)
+        this.chat_log += ('\r\n' + chat_message);
+      else
+        this.chat_log = chat_message;
+    };
+    this.chat_socket.onclose = function(event) {
+      console.log(event);
+      console.error('Chat socket closed unexpectedly');
+    };
+  },
+  methods: {
+    async set_screen(screen) {
+      this.screen = screen;
+      $('.menu').animate({"right":"-200px"}, 500);
+      $('#menuButton i').attr("class","fa fa-bars");
+      if (screen=='chat') {
+		await Vue.nextTick();
+        this.chat_setup();
+      }
+    },
+    chat_setup() {
+        console.log('chat_setup');
+		this.$refs.chat_message_input.focus();
+    },
+    send_chat_message() {
+	    json = {
+	        message: this.chat_message,
+	        user_name: this.user_name,
+	    };
+	    this.chat_socket.send(JSON.stringify(json));
+	    this.chat_message = '';
+		this.$refs.chat_message_input.focus();
+	},
+	reaction(event_code, message) {
+		data = {event_code: event_code, message: message};
+	    fetch('/feedback/reaction/', {
+	      method: 'POST',
+	      headers: { "Content-Type": "application/json", "X-Requested-With": "XMLHttpRequest" },
+	      body: JSON.stringify(data)
+	   	})
+	    .then(response => response.json())
+	    .then(data => {
+			console.log(data);
+			warning = data['warning'];
+			if (!(warning === undefined))
+				window.alert(warning);
+	    })
+	    .catch(err => (window.alert(err)))
+	}
+  }
+});
 </script>
 
+</body>
 </html> 

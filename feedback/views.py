@@ -98,7 +98,7 @@ def feedback_attendee(request, event_id):
             'event_title': event.title,
             'project_name': project.name,
             'not_running': not_running,
-            'word_array': word_array(),
+            'word_array': json.dumps(word_array()),
         })
     return render(request, 'feedback/feedback_attendee.html', {
        'error': _('an invalid event code was specified')                                             
