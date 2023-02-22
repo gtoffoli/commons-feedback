@@ -68,7 +68,8 @@ h3.header span a {
   height:100%;
   position:fixed;
   right:-200px;
-  background:#66aa66; 
+  background:#66aa66;
+  z-index: 100;
 }
 .menu ul {
   margin-top: 1em;
@@ -136,10 +137,30 @@ ul.grid-container li.grid-item.btn:hover {
     color: white;
     background-color: #224422;
 }
+p.action-title {
+font-size: 1.4em;
+font-variant: small-caps;
+text-align: center;
+}
+div.chat textarea, div.chat textarea, div.chat input[type=text] {
+    width: 100%;
+    padding: 0.3em 0.6em;
+    border: 0;
+}
+div.chat textarea {
+  color: white;
+  background-color: #66aa66;
+}
+div.chat input[type=text]  {
+color: black;
+height: 2.2em;
+}
+div.chat textarea:focus, div.chat textarea:focus-visible,
+div.chat input[type=text]:focus, div.chat input[type=text]:focus-visible {
+  border: 0;
+  outline: 0;
+}
 </style>
-
-<script>
-</script>
 </head>
 
 <body>
@@ -149,8 +170,9 @@ ul.grid-container li.grid-item.btn:hover {
   </h3>
 {% verbatim %}
 <div id="app" class='components-container'>
-  <div class="menu">
+  <div class="menu" style="z-index:100">
     <ul>
+      <li><a href="#" v-on:click="set_screen('cover')">{{ label_cover }}</a></li>
       <li><a href="#" v-on:click="set_screen('select')">{{ label_select }}</a></li>
       <li><a href="#" v-on:click="set_screen('react')">{{ label_react }}</a></li>
       <li><a href="#" v-on:click="set_screen('chat')">{{ label_chat }}</a></li>
@@ -159,6 +181,12 @@ ul.grid-container li.grid-item.btn:hover {
   </div>
 
   <div class="container">
+    <div v-if="screen=='cover'" class="row">
+      <div class="col-sm-4" style="padding:0"></div>
+      <div class="col-sm-4" style="padding:0"><p class="action-title"><img src="/static/we-collab/img/we-collab-cover.jpg" style="width:100%" /></p></div>
+      <div class="col-sm-4" style="padding:0"></div> 
+    </div>
+    <div v-if="screen!='cover'">
     <h4>{{ label_session_info }}</h4>
     <dl class="dl-horizontal">
       <dt>{{ label_user }}:</dt><dd>{{ user_name }}</dd>
@@ -175,30 +203,27 @@ ul.grid-container li.grid-item.btn:hover {
     <dl class="dl-horizontal space-bottom">
       <dt>{{ label_end_date }}:</dt><dd>{{ end_date }}</dd>
     </dl>
-    <dl v-if="not_running" class="dl-horizontal space-bottom txt-warning" style="">
+    <dl v-if="not_running" class="dl-horizontal space-bottom txt-warning">
       <dt>{{ label_warning }}:</dt><dd>{{ label_not_running }}</dl</dd>
     </dl>
-
+    </div>
     <div v-if="screen=='select'">
-      <h4>{{ label_select }}</h4>
+      <p class="action-title">{{ label_select }}</p>
     </div>
 
     <div v-if="screen=='react'">
-      <h4>{{ label_react }}</h4>
+      <p class="action-title">{{ label_react }}</p>
       <ul class="grid-container">
         <li v-for="item in word_array" class="grid-item btn" v-on:click="reaction('{{ event_code }}','{{ item.text }}')">{{ item.label }}</li>
       </ul>
     </div>
 
-    <div v-if="screen=='chat'" style="float: left; width: 100%;">
-      <h4>{{ label_chat }}</h4>
-      <div><textarea class="form-control" name="chat_log" v-model="chat_log" cols="120" rows="10" style="width: 100%;" readonly></textarea></div>
-      <div><input type="text" class="form-control" name="chat_message" v-model="chat_message" v-on:keyup.enter="send_chat_message" ref="chat_message_input" cols="120" rows="1" style="width: 100%;" :placeholder="label_placeholder"></input></div>
-    </div>
-
     <div v-if="screen=='chat'">
+      <p class="action-title">{{ label_chat }}</p>
+      <div class="chat">
+        <textarea name="chat_log" v-model="chat_log" rows="10" readonly></textarea>
+        <input type="text" name="chat_message" v-model="chat_message" v-on:keyup.enter="send_chat_message" ref="chat_message_input" :placeholder="label_placeholder"></input></div>
     </div>
-
   </div>
 </div>
 {% endverbatim %}
@@ -217,7 +242,7 @@ $('#menuButton').click(function() {
 var app = new Vue({
   el: '#app',
   data: {
-	screen: "react",
+	screen: "cover",
     user_name: "{{ user_name }}",
     project_name: "{{ project_name }}",
     event_name: "{{ event_name }}",
@@ -238,6 +263,7 @@ var app = new Vue({
     label_end_date: "{% trans "end date" %}",
     label_warning: "{% trans "warning" %}",
     label_not_running: "{% trans "event not running" %}",
+    label_cover: "{% trans "home" %}",
     label_select: "{% trans "select event" %}",
     label_react: "{% trans "react" %}",
     label_chat: "{% trans "chat" %}",
@@ -245,6 +271,7 @@ var app = new Vue({
     label_exit: "{% trans "exit" %}",
     label_placeholder: "{% trans "type a message and hit 'enter' key" %}",
     word_array: {{ word_array|safe }},
+    img_cover: "{% static "/we-collab/img/we-collab.png" %}",
   },
   created: function () {
     console.log('created');
