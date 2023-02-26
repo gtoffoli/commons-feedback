@@ -6,12 +6,12 @@ from django.conf import settings
 from django.http import JsonResponse
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
-from django.utils import timezone
+from django.utils import timezone, formats
 import django.utils.translation
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth.models import User
-from schedule.models import Event, CalendarRelation
-from commons.models import Project
+from schedule.models import Calendar, Event, CalendarRelation
+from commons.models import Project, get_calendar_events, get_event_project
 from commons.tracking import track_action
 from commons.utils import private_code, unshuffle_integers
 from feedback.producers import reaction_item_producer, chat_item_producer
@@ -52,57 +52,84 @@ def feedback_dashboard(request, event_code):
         assert request.user.id == user_id
         user = User.objects.get(id=user_id)
         user_name = user.get_display_name()
-        event_name = 'event_{}'.format(event_id)
         events = Event.objects.filter(id=event_id)
         if events:
             event = events[0]
-            calendar = event.calendar
-            relations = CalendarRelation.objects.filter(calendar=calendar)
             now = timezone.now()
             not_running = now < event.start or now > event.end
-            project_id = relations[0].object_id
-            project = Project.objects.get(id=project_id)
-            return render(request, 'feedback/feedback_dashboard.html', {
-                'user_name': user_name,
-                'event_code': event_code,
-                'event_name': event_name,
-                'event_title': event.title,
-                'project_name': project.name,
-                'not_running': not_running,
-                'word_array': json.dumps(word_array()),
-                'VUE': True,
-            })
+            context = event_dict(event, user.id)
+            context['user_name'] = user_name
+            context['word_array'] = json.dumps(word_array()) 
+            context['not_running'] = not_running
+            context['VUE'] = True
+            return render(request, 'feedback/feedback_dashboard.html', context)
     return render(request, 'feedback/feedback_dashboard.html', {
        'error': _('an invalid event code was specified')                                             
     })
 
-def feedback_attendee(request, event_id):
+def feedback_attendee(request, event_code=None):
     user = request.user
-    user_name = user.get_display_name()
-    event_name = 'event_{}'.format(event_id)
-    events = Event.objects.filter(id=event_id)
-    if events:
-        event = events[0]
-        event_code = private_code(event, user.id)
-        calendar = event.calendar
-        relations = CalendarRelation.objects.filter(calendar=calendar)
-        now = timezone.now()
-        not_running = now < event.start or now > event.end
-        project_id = relations[0].object_id
-        project = Project.objects.get(id=project_id)
+    if user.is_anonymous and not event_code:
         return render(request, 'feedback/feedback_attendee.html', {
-            'user_name': user_name,
-            'event': event,
-            'event_code': event_code,
-            'event_name': event_name,
-            'event_title': event.title,
-            'project_name': project.name,
-            'not_running': not_running,
-            'word_array': json.dumps(word_array()),
-        })
+                'warning': _('user is anonymous and event is not specified')  
+            })
+    elif not event_code:                                         
+        context = get_next_events(request, return_context=True)
+        context['word_array'] = json.dumps(word_array()) 
+        context['warning'] = _('event is not specified')
+        return render(request, 'feedback/feedback_attendee.html', context)
+    event_id, user_id = unshuffle_integers(event_code)
+    if event_id and user_id:
+        assert request.user.id == user_id
+        user = User.objects.get(id=user_id)
+        user_name = user.get_display_name()
+        events = Event.objects.filter(id=event_id)
+        if events:
+            event = events[0]
+            now = timezone.now()
+            not_running = now < event.start or now > event.end
+            context = event_dict(event, user.id)
+            context['user_name'] = user_name
+            context['word_array'] = json.dumps(word_array()) 
+            context['not_running'] = not_running
+            return render(request, 'feedback/feedback_attendee.html', context)
     return render(request, 'feedback/feedback_attendee.html', {
        'error': _('an invalid event code was specified')                                             
     })
+
+def event_dict(event, user_id):
+    project = get_event_project(event)
+    CET = pytz.timezone(settings.TIME_ZONE)
+    return {
+        'event_code': private_code(event, user_id),
+        'event_name': 'event_{}'.format(event.id),
+        'event_title': event.title,
+        'name': event.title,
+        'start_date': formats.date_format(event.start.astimezone(CET), settings.DATETIME_FORMAT),
+        'end_date': formats.date_format(event.end.astimezone(CET), settings.DATETIME_FORMAT),
+        'project_name': project.name,
+    }
+
+@csrf_exempt
+def get_next_events(request, return_context=False):
+    """ Build and return a list of candidate events.
+    """
+    user = request.user
+    data = {}
+    if user.is_anonymous:
+        data['warning'] =  _('please authenticate')
+        data['user_name'] = ''
+        data['event_code'] = ''
+    else:
+        data['warning'] = ''
+        data['user_name'] = user.get_display_name()
+        calendar = Calendar.objects.get(slug='virtual')
+        events = get_calendar_events(request, calendar)
+        next_events = [event for event in events if event.end > timezone.now()]
+        data['next_events'] = [event_dict(event, user.id) for event in next_events]
+    if return_context:
+        return data
+    return JsonResponse(data)
 
 @csrf_exempt
 def validate_event(request):
@@ -121,6 +148,7 @@ def validate_event(request):
     data['event_code'] = event_code
     data['user_email'] = user_email
     users = User.objects.filter(id=user_id)
+    error = ''
     if not users:
         error = _('user is unknown')
     else:
@@ -138,8 +166,8 @@ def validate_event(request):
                 event = events[0]
                 data['event'] = event.title
                 CET = pytz.timezone(settings.TIME_ZONE)
-                data['start'] = event.start.astimezone(CET)
-                data['end'] = event.end.astimezone(CET)
+                data['start'] = event.start.astimezone(CET).strftime(_(settings.DATETIME_FORMAT))
+                data['end'] = event.end.astimezone(CET).strftime(_(settings.DATETIME_FORMAT))
                 data['event_name'] = 'event_{}'.format(event_id)
                 now = timezone.now()
                 if now < event.start or now > event.end:
@@ -187,12 +215,9 @@ def reaction_message(request):
             if now < event.start or now > event.end:
                 data['warning'] = _('event is not running')
             else:
-                calendar = event.calendar
-                relations = CalendarRelation.objects.filter(calendar=calendar)
-                project_id = relations[0].object_id
-                project = Project.objects.get(id=project_id)
+                project = get_event_project(event)
                 CET = pytz.timezone(settings.TIME_ZONE)
-                message = '{}-{}: {}'.format(str(now.astimezone(CET))[11:19], user_name, reaction)
+                message = '{}-{}: {}'.format(now.astimezone(CET).strftime(_(settings.DATETIME_FORMAT)), user_name, reaction)
                 if not project.is_member(user):
                     data['warning'] = _('user is not member of community/project')
                 else:
@@ -239,12 +264,10 @@ def chat_message(request):
             if now < event.start or now > event.end:
                 data['warning'] = _('event is not running')
             else:
-                calendar = event.calendar
-                relations = CalendarRelation.objects.filter(calendar=calendar)
-                project_id = relations[0].object_id
-                project = Project.objects.get(id=project_id)
+                project = get_event_project(event)
                 CET = pytz.timezone(settings.TIME_ZONE)
-                message = '{}-{}: {}'.format(str(now.astimezone(CET))[11:19], user_name, message)
+                # message = '{}-{}: {}'.format(str(now.astimezone(CET))[11:19], user_name, message)
+                message = '{}-{}: {}'.format(now.astimezone(CET).strftime(_(settings.DATETIME_FORMAT)), user_name, message)
                 if not project.is_member(user):
                     data['warning'] = _('user is not member of community/project')
                 else:

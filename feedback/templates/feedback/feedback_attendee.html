@@ -8,23 +8,7 @@
 	<title>{% trans "WE-COLLAB Feedback" %}</title>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-<link rel="apple-touch-icon" sizes="57x57" href="{% static "we-collab/img/apple-icon-57x57.png" %}">
-<link rel="apple-touch-icon" sizes="60x60" href="{% static "we-collab/img/apple-icon-60x60.png" %}">
-<link rel="apple-touch-icon" sizes="72x72" href="{% static "we-collab/img/apple-icon-72x72.png" %}">
-<link rel="apple-touch-icon" sizes="76x76" href="{% static "we-collab/img/apple-icon-76x76.png" %}">
-<link rel="apple-touch-icon" sizes="114x114" href="{% static "we-collab/img/apple-icon-114x114.png" %}">
-<link rel="apple-touch-icon" sizes="120x120" href="{% static "we-collab/img/apple-icon-120x120.png" %}">
-<link rel="apple-touch-icon" sizes="144x144" href="{% static "we-collab/img/apple-icon-144x144.png" %}">
-<link rel="apple-touch-icon" sizes="152x152" href="{% static "/we-collab/img/apple-icon-152x152.png" %}">
-<link rel="apple-touch-icon" sizes="180x180" href="{% static "we-collab/img/apple-icon-180x180.png" %}">
-<link rel="icon" type="image/png" sizes="192x192"  href="{% static "we-collab/img/android-icon-192x192.png" %}">
-<link rel="icon" type="image/png" sizes="32x32" href="{% static "we-collab/img/favicon-32x32.png" %}">
-<link rel="icon" type="image/png" sizes="96x96" href="{% static "we-collab/img/favicon-96x96.png" %}">
-<link rel="icon" type="image/png" sizes="16x16" href="{% static "we-collab/img/favicon-16x16.png" %}">
-<link rel="manifest" href="/manifest.json">
-<meta name="msapplication-TileColor" content="#ffffff">
-<meta name="msapplication-TileImage" content="{% static "we-collab/img/ms-icon-144x144.png" %}">
-<meta name="theme-color" content="#ffffff">
+	<link href="{% static "vue_apps/dropdown/dropdown.css" %}" rel="stylesheet">
 	<link href="{% static "bootstrap/css/bootstrap.css" %}" rel="stylesheet">
 	<script src="{% static "jquery/js/jquery-2.1.4.min.js" %}"></script>
     <script src="https://use.fontawesome.com/d391635073.js"></script>
@@ -160,6 +144,29 @@ div.chat input[type=text]:focus, div.chat input[type=text]:focus-visible {
   border: 0;
   outline: 0;
 }
+
+li {
+    list-style: none;
+}
+.dropdown-menu, .dropdown-toggle {
+  background:#66aa66;
+  font-size: 1.2em;
+  font-weight: 600;
+  color: white;
+  text-decoration: none;
+  margin-bottom: 1em;
+  padding-bottom:0.5em;
+}
+.dropdown-toggle {
+  border-radius: 4px;
+}
+.dropdown-menu {
+  border-radius: 0;
+}
+.dropdown-menu > li > a:hover {
+  background: #efefef;
+}
+
 </style>
 </head>
 
@@ -183,38 +190,49 @@ div.chat input[type=text]:focus, div.chat input[type=text]:focus-visible {
   <div class="container">
     <div v-if="screen=='cover'" class="row">
       <div class="col-sm-4" style="padding:0"></div>
-      <div class="col-sm-4" style="padding:0"><p class="action-title"><img src="/static/we-collab/img/we-collab-cover.jpg" style="width:100%" /></p></div>
+      <div class="col-sm-4" style="padding:0"><p class="action-title"><img v-bind:src="img_cover" style="width:100%" /></p></div>
       <div class="col-sm-4" style="padding:0"></div> 
     </div>
+ 
     <div v-if="screen!='cover'">
-    <h4>{{ label_session_info }}</h4>
+    <h4>{{ label_event_info }}</h4>
     <dl class="dl-horizontal">
-      <dt>{{ label_user }}:</dt><dd>{{ user_name }}</dd>
+      <dt>{{ label_user }}:</dt>
+      <dd v-if="user_name">{{ user_name }}</dd><dd v-else>{{ label_anonymous_user }}</dd>
     </dl>
-    <dl class="dl-horizontal">
-      <dt>{{ label_project }}:</dt><dd>{{ project_name }}</dd>
-    </dl>
-    <dl class="dl-horizontal">
-      <dt>{{ label_event }}:</dt><dd>{{ event_title }}</dd>
-    </dl>
-    <dl class="dl-horizontal">
-      <dt>{{ label_start_date}}:</dt><dd>{{ start_date }}</dd>
-    </dl>
-    <dl class="dl-horizontal space-bottom">
-      <dt>{{ label_end_date }}:</dt><dd>{{ end_date }}</dd>
-    </dl>
+    <template v-if="event_code">
+	    <dl class="dl-horizontal">
+	      <dt>{{ label_project }}:</dt><dd>{{ project_name }}</dd>
+	    </dl>
+	    <dl class="dl-horizontal">
+	      <dt>{{ label_event }}:</dt><dd>{{ event_title }}</dd>
+	    </dl>
+	    <dl class="dl-horizontal">
+	      <dt>{{ label_start_date}}:</dt><dd>{{ start_date }}</dd>
+	    </dl>
+	    <dl class="dl-horizontal space-bottom">
+	      <dt>{{ label_end_date }}:</dt><dd>{{ end_date }}</dd>
+	    </dl>
+    </template>
     <dl v-if="not_running" class="dl-horizontal space-bottom txt-warning">
       <dt>{{ label_warning }}:</dt><dd>{{ label_not_running }}</dl</dd>
     </dl>
     </div>
-    <div v-if="screen=='select'">
+
+    <div v-if="screen=='select'" style="text-align: center;">
       <p class="action-title">{{ label_select }}</p>
+<!--
+      <ul v-if="next_events!=null">
+        <li v-for="option in next_events">{{ option.event_title }}</li>
+      </ul>
+-->
+      <dropdown :options="next_events" :selected="selected_initial" v-on:update-option="on_event_selected" :placeholder="placeholder_event"></dropdown>
     </div>
 
     <div v-if="screen=='react'">
       <p class="action-title">{{ label_react }}</p>
       <ul class="grid-container">
-        <li v-for="item in word_array" class="grid-item btn" v-on:click="reaction('{{ event_code }}','{{ item.text }}')">{{ item.label }}</li>
+        <li v-for="item in word_array" class="grid-item btn" v-on:click="reaction(event_code, item.text)">{{ item.label }}</li>
       </ul>
     </div>
 
@@ -222,7 +240,7 @@ div.chat input[type=text]:focus, div.chat input[type=text]:focus-visible {
       <p class="action-title">{{ label_chat }}</p>
       <div class="chat">
         <textarea name="chat_log" v-model="chat_log" rows="10" readonly></textarea>
-        <input type="text" name="chat_message" v-model="chat_message" v-on:keyup.enter="send_chat_message" ref="chat_message_input" :placeholder="label_placeholder"></input></div>
+        <input type="text" name="chat_message" v-model="chat_message" v-on:keyup.enter="send_chat_message" ref="chat_message_input" :placeholder="placeholder_chat"></input></div>
     </div>
   </div>
 </div>
@@ -238,25 +256,38 @@ $('#menuButton').click(function() {
     $('#menuButton i').attr("class","fa fa-bars");
   }
 });
+</script>
+
+<script type="module">
+import dropdown from '{% static "vue_apps/dropdown/dropdown.js" %}'
+Vue.component('dropdown', dropdown);
 
 var app = new Vue({
   el: '#app',
+  components: {
+    dropdown: dropdown
+  },
   data: {
 	screen: "cover",
     user_name: "{{ user_name }}",
     project_name: "{{ project_name }}",
+    event_code: "{{ event_code }}",
     event_name: "{{ event_name }}",
     event_title: "{{ event_title }}",
-    start_date: "{% blocktrans with event.end|date:_("DATETIME_FORMAT") as start_date %}{{ start_date }}{% endblocktrans %}",
-    end_date: "{% blocktrans with event.end|date:_("DATETIME_FORMAT") as end_date %}{{ end_date }}{% endblocktrans %}",
+    start_date: "{{ start_date }}",
+    end_date: "{{ end_date }}",
+    next_events: [],
+    selected_initial: '',
     not_running: true,
     chat_message: '',
     chat_log: '',
     readonly: 'readonly',
     ws_protocol: '',
     chat_socket: null,
-    label_session_info: "{% trans "session info" %}",
+    chat_connected: false,
+    label_event_info: "{% trans "event info" %}",
     label_user: "{% trans "user" %}",
+    label_unknown_user: "{% trans "unknown" %}",
     label_project: "{% trans "project" %}",
     label_event: "{% trans "event" %}",
     label_start_date: "{% trans "start date" %}",
@@ -269,53 +300,99 @@ var app = new Vue({
     label_chat: "{% trans "chat" %}",
     label_chat_log: "{% trans "chat log" %}",
     label_exit: "{% trans "exit" %}",
-    label_placeholder: "{% trans "type a message and hit 'enter' key" %}",
+    placeholder_event: "{% trans "no event selected yet" %}",
+    placeholder_chat: "{% trans "type a message and hit 'enter' key" %}",
     word_array: {{ word_array|safe }},
-    img_cover: "{% static "/we-collab/img/we-collab.png" %}",
+    img_cover: "{% static "we_collab/img/we-collab-cover.jpg" %}",
   },
   created: function () {
-    console.log('created');
+    console.log('created 1');
     if (window.location.protocol == 'https:') {
       this.ws_protocol = 'wss://'
     } else {
       this.ws_protocol = 'ws://'
     };
-	this.chat_socket = new WebSocket(this.ws_protocol + window.location.host + '/ws/chat/' + this.event_name + '/');
-    this.chat_socket.onopen = function(event) {
-      console.log('Successfully connected to the chat socket server');
-    };
+    this.get_next_events();
+    // if (!this.event_code)
+        this.selected_initial = this.next_events[0]
+    console.log('created 2', this.next_events, this.selected_initial);
   },
   mounted: function () {
     console.log('mounted');
-    this.chat_socket.onmessage = (event) => {
-      console.log(event);
-      data = JSON.parse(event.data);
-      chat_message = data.message;
-      if (this.chat_log)
-        this.chat_log += ('\r\n' + chat_message);
-      else
-        this.chat_log = chat_message;
-    };
-    this.chat_socket.onclose = function(event) {
-      console.log(event);
-      console.error('Chat socket closed unexpectedly');
-    };
   },
   methods: {
     async set_screen(screen) {
       this.screen = screen;
       $('.menu').animate({"right":"-200px"}, 500);
       $('#menuButton i').attr("class","fa fa-bars");
-      if (screen=='chat') {
+      if (screen=='select')
+        this.get_next_events ();
+	  else if (screen=='chat') {
 		await Vue.nextTick();
         this.chat_setup();
       }
     },
+	open_chat_socket() {
+		this.chat_socket = new WebSocket(this.ws_protocol + window.location.host + '/ws/chat/' + this.event_name + '/');
+	},
     chat_setup() {
-        console.log('chat_setup');
+        console.log('chat_setup 1');
+        if (this.event_name && !this.chat_connected) {
+			open_chat_socket();
+		}
+	    this.chat_socket.onopen = function(event) {
+	      console.log('Successfully connected to the chat socket server');
+	      this.chat_connected = true;
+	    };
+	    this.chat_socket.onmessage = (event) => {
+	      console.log(event);
+	      data = JSON.parse(event.data);
+	      chat_message = data.message;
+	      if (this.chat_log)
+	        this.chat_log += ('\r\n' + chat_message);
+	      else
+	        this.chat_log = chat_message;
+	    };
+	    this.chat_socket.onclose = function(event) {
+	      console.log(event);
+	      this.chat_connected = false;
+	      console.error('Chat socket closed unexpectedly');
+	    };
 		this.$refs.chat_message_input.focus();
+        console.log('chat_setup 2');
     },
+    get_next_events () {
+		console.log('get_next_events 1');
+	    fetch('/feedback/next_events/', {
+	      method: 'POST',
+	      headers: { "Content-Type": "application/json", "X-Requested-With": "XMLHttpRequest" },
+		})
+	    .then(response => response.json())
+	    .then(data => {
+			console.log('data:', data);
+            for (var key in data) {
+                this[key] = data[key];
+            };
+		    console.log('get_next_events 1.5');
+			if (data['warning'])
+				console.log('warning:', data['warning']);
+	    })
+	    .catch(err => (console.log(err)))
+		console.log('get_next_events 2');
+	},
+    on_event_selected (option) {
+		console.log('on_event_selected 1');
+		console.log(option);
+		console.log(this)
+		this.event_code = option.event_code;
+		this.event_title = option.name;
+		this.project_name = option.project_name;
+		this.start_date = option.start_date;
+		this.end_date = option.end_date;
+		console.log('on_event_selected 2');
+	},
     send_chat_message() {
+		console.log('send_chat_message');
 	    json = {
 	        message: this.chat_message,
 	        user_name: this.user_name,
@@ -325,6 +402,7 @@ var app = new Vue({
 		this.$refs.chat_message_input.focus();
 	},
 	reaction(event_code, message) {
+		console.log('reaction', event_code, message);
 		data = {event_code: event_code, message: message};
 	    fetch('/feedback/reaction/', {
 	      method: 'POST',
@@ -334,11 +412,10 @@ var app = new Vue({
 	    .then(response => response.json())
 	    .then(data => {
 			console.log(data);
-			warning = data['warning'];
-			if (!(warning === undefined))
-				window.alert(warning);
+			if (!(data['warning'] === undefined))
+				console.log(data['warning']);
 	    })
-	    .catch(err => (window.alert(err)))
+	    .catch(err => (console.log(err)))
 	}
   }
 });

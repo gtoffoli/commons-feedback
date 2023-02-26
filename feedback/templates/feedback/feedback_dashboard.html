@@ -87,7 +87,10 @@
     <h3 class="text-center">{% trans "Student Feedback App" %} - {% trans "Event Dashboard" %}
       <br><span style="font-size: smaller;">
         {% trans "project"|capfirst %}: <i>{{ project_name }}</i> -
-        {% trans "event"|capfirst %}: <i>{{ event_title }}</i>
+        {% trans "event"|capfirst %}: <i>{{ event_title }}</i><br>
+        {% if start_date and end_date %} 
+    	        {% trans "time"|capfirst %}: <i>{{ start_date }}</i> - <i>{{ end_date }}</i>
+        {% endif %}
         {% if not_running %}
         	(<span style="color: red;">{% trans "event not running" %}</span>)
         {% endif %}
@@ -104,7 +107,6 @@
       <div><label>{{ label_word_cloud }}</label></div>
       <template lang="html">
         <div>
-         <!-- <button type="button" name="button" v-on:click="draw">Boom</button> -->
          <div id='vue-tag-cloud' class='vue-tag-cloud'></div>
         </div>
       </template>
