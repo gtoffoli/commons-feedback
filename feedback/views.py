@@ -100,14 +100,18 @@ def feedback_attendee(request, event_code=None):
 def event_dict(event, user_id):
     project = get_event_project(event)
     CET = pytz.timezone(settings.TIME_ZONE)
+    start_date = formats.date_format(event.start.astimezone(CET), settings.DATETIME_FORMAT)
+    now = timezone.now()
+    not_running = now < event.start or now > event.end
     return {
         'event_code': private_code(event, user_id),
         'event_name': 'event_{}'.format(event.id),
         'event_title': event.title,
-        'name': event.title,
-        'start_date': formats.date_format(event.start.astimezone(CET), settings.DATETIME_FORMAT),
+        'start_date': start_date,
         'end_date': formats.date_format(event.end.astimezone(CET), settings.DATETIME_FORMAT),
         'project_name': project.name,
+        'name': '{} - {}'.format(event.title, start_date),
+        'not_running': not_running
     }
 
 @csrf_exempt
@@ -221,6 +225,7 @@ def reaction_message(request):
                 if not project.is_member(user):
                     data['warning'] = _('user is not member of community/project')
                 else:
+                    print('track_action 0')
                     track_action(request, user, verb, event, target=project, response=reaction)
                     # push line to all raw feedback visualizers
                     reaction_item_producer(group_name, message)

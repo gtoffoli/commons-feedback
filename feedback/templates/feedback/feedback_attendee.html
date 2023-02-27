@@ -160,6 +160,10 @@ li {
 .dropdown-toggle {
   border-radius: 4px;
 }
+.caret {
+  position: unset;
+  font-size: 1.5em;
+}
 .dropdown-menu {
   border-radius: 0;
 }
@@ -213,20 +217,20 @@ li {
 	    <dl class="dl-horizontal space-bottom">
 	      <dt>{{ label_end_date }}:</dt><dd>{{ end_date }}</dd>
 	    </dl>
+	    <dl v-if="not_running" class="dl-horizontal space-bottom txt-warning">
+	      <dt>{{ label_warning }}:</dt><dd>{{ label_not_running }}</dl</dd>
+	    </dl>
     </template>
-    <dl v-if="not_running" class="dl-horizontal space-bottom txt-warning">
-      <dt>{{ label_warning }}:</dt><dd>{{ label_not_running }}</dl</dd>
-    </dl>
     </div>
 
-    <div v-if="screen=='select'" style="text-align: center;">
+    <div v-show="screen=='select'" style="text-align: center;">
       <p class="action-title">{{ label_select }}</p>
 <!--
       <ul v-if="next_events!=null">
         <li v-for="option in next_events">{{ option.event_title }}</li>
       </ul>
 -->
-      <dropdown :options="next_events" :selected="selected_initial" v-on:update-option="on_event_selected" :placeholder="placeholder_event"></dropdown>
+      <dropdown :options="next_events" :selected="selected_initial" :key="dropdown_updates" v-on:update-option="on_event_selected" :placeholder="placeholder_event"></dropdown>
     </div>
 
     <div v-if="screen=='react'">
@@ -277,8 +281,13 @@ var app = new Vue({
     start_date: "{{ start_date }}",
     end_date: "{{ end_date }}",
     next_events: [],
-    selected_initial: '',
+    selected_initial: {
+    	name: "{% trans "no event" %}",
+	},
+	error: '',
+	warning: '',
     not_running: true,
+    dropdown_updates: 0,
     chat_message: '',
     chat_log: '',
     readonly: 'readonly',
@@ -290,8 +299,9 @@ var app = new Vue({
     label_unknown_user: "{% trans "unknown" %}",
     label_project: "{% trans "project" %}",
     label_event: "{% trans "event" %}",
-    label_start_date: "{% trans "start date" %}",
-    label_end_date: "{% trans "end date" %}",
+    label_no_event: "{% trans "no event" %}",
+    label_start_date: "{% trans "start time" %}",
+    label_end_date: "{% trans "end time" %}",
     label_warning: "{% trans "warning" %}",
     label_not_running: "{% trans "event not running" %}",
     label_cover: "{% trans "home" %}",
@@ -313,8 +323,6 @@ var app = new Vue({
       this.ws_protocol = 'ws://'
     };
     this.get_next_events();
-    // if (!this.event_code)
-        this.selected_initial = this.next_events[0]
     console.log('created 2', this.next_events, this.selected_initial);
   },
   mounted: function () {
@@ -339,24 +347,24 @@ var app = new Vue({
         console.log('chat_setup 1');
         if (this.event_name && !this.chat_connected) {
 			open_chat_socket();
-		}
-	    this.chat_socket.onopen = function(event) {
-	      console.log('Successfully connected to the chat socket server');
-	      this.chat_connected = true;
-	    };
-	    this.chat_socket.onmessage = (event) => {
-	      console.log(event);
-	      data = JSON.parse(event.data);
-	      chat_message = data.message;
-	      if (this.chat_log)
-	        this.chat_log += ('\r\n' + chat_message);
-	      else
-	        this.chat_log = chat_message;
-	    };
-	    this.chat_socket.onclose = function(event) {
-	      console.log(event);
-	      this.chat_connected = false;
-	      console.error('Chat socket closed unexpectedly');
+		    this.chat_socket.onopen = function(event) {
+		      console.log('Successfully connected to the chat socket server');
+		      this.chat_connected = true;
+		    };
+		    this.chat_socket.onmessage = (event) => {
+		      console.log(event);
+		      data = JSON.parse(event.data);
+		      chat_message = data.message;
+		      if (this.chat_log)
+		        this.chat_log += ('\r\n' + chat_message);
+		      else
+		        this.chat_log = chat_message;
+		    };
+		    this.chat_socket.onclose = function(event) {
+		      console.log(event);
+		      this.chat_connected = false;
+		      console.error('Chat socket closed unexpectedly');
+		    };
 	    };
 		this.$refs.chat_message_input.focus();
         console.log('chat_setup 2');
@@ -377,7 +385,14 @@ var app = new Vue({
 			if (data['warning'])
 				console.log('warning:', data['warning']);
 	    })
-	    .catch(err => (console.log(err)))
+	    .catch(err => (console.log(err)));
+	    if (this.next_events.length>0) {
+	    	if (!this.event_code)
+	        	this.selected_initial = {name: this.placeholder_event};
+	    } else {
+	    	this.event_code = '';
+    		this.selected_initial = {name: this.label_no_event};
+    	};
 		console.log('get_next_events 2');
 	},
     on_event_selected (option) {
@@ -385,21 +400,25 @@ var app = new Vue({
 		console.log(option);
 		console.log(this)
 		this.event_code = option.event_code;
-		this.event_title = option.name;
+		this.event_title = option.event_title;
 		this.project_name = option.project_name;
 		this.start_date = option.start_date;
 		this.end_date = option.end_date;
+		this.warning = option.warning;
+		this.not_running = option.not_running;
 		console.log('on_event_selected 2');
 	},
     send_chat_message() {
 		console.log('send_chat_message');
-	    json = {
-	        message: this.chat_message,
-	        user_name: this.user_name,
-	    };
-	    this.chat_socket.send(JSON.stringify(json));
-	    this.chat_message = '';
-		this.$refs.chat_message_input.focus();
+		if (this.chat_connected) {
+		    json = {
+		        message: this.chat_message,
+		        user_name: this.user_name,
+		    };
+		    this.chat_socket.send(JSON.stringify(json));
+		    this.chat_message = '';
+			this.$refs.chat_message_input.focus();
+		}
 	},
 	reaction(event_code, message) {
 		console.log('reaction', event_code, message);
