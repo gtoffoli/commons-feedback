@@ -170,8 +170,8 @@ def validate_event(request):
                 event = events[0]
                 data['event'] = event.title
                 CET = pytz.timezone(settings.TIME_ZONE)
-                data['start'] = event.start.astimezone(CET).strftime(_(settings.DATETIME_FORMAT))
-                data['end'] = event.end.astimezone(CET).strftime(_(settings.DATETIME_FORMAT))
+                data['start'] = formats.date_format(event.start.astimezone(CET), settings.DATETIME_FORMAT)
+                data['end'] = formats.date_format(event.end.astimezone(CET), settings.DATETIME_FORMAT)
                 data['event_name'] = 'event_{}'.format(event_id)
                 now = timezone.now()
                 if now < event.start or now > event.end:
@@ -221,7 +221,7 @@ def reaction_message(request):
             else:
                 project = get_event_project(event)
                 CET = pytz.timezone(settings.TIME_ZONE)
-                message = '{}-{}: {}'.format(now.astimezone(CET).strftime(_(settings.DATETIME_FORMAT)), user_name, reaction)
+                message = '{}-{}: {}'.format(str(now.astimezone(CET))[11:19], user_name, reaction)
                 if not project.is_member(user):
                     data['warning'] = _('user is not member of community/project')
                 else:
@@ -271,8 +271,7 @@ def chat_message(request):
             else:
                 project = get_event_project(event)
                 CET = pytz.timezone(settings.TIME_ZONE)
-                # message = '{}-{}: {}'.format(str(now.astimezone(CET))[11:19], user_name, message)
-                message = '{}-{}: {}'.format(now.astimezone(CET).strftime(_(settings.DATETIME_FORMAT)), user_name, message)
+                message = '{}-{}: {}'.format(str(now.astimezone(CET))[11:19], user_name, message)
                 if not project.is_member(user):
                     data['warning'] = _('user is not member of community/project')
                 else:
