@@ -192,6 +192,7 @@ li {
       <li><a href="#" v-on:click="set_screen('select')">{{ label_select }}</a></li>
       <li><a href="#" v-on:click="set_screen('react')">{{ label_react }}</a></li>
       <li><a href="#" v-on:click="set_screen('chat')">{{ label_chat }}</a></li>
+      <li><a href="#" v-on:click="set_screen('about')">{{ label_about }}</a></li>
       <li><a href="javascript: self.close ()">{{ label_exit }}</a></li>
     </ul>
   </div>
@@ -212,7 +213,7 @@ li {
       <div class="col-sm-4" style="padding:0"></div> 
     </div>
  
-    <div v-if="screen!='cover'">
+    <div v-if="screen!='cover' && screen!='about'">
     <h4>{{ label_event_info }}</h4>
     <dl class="dl-horizontal">
       <dt>{{ label_user }}:</dt>
@@ -240,6 +241,18 @@ li {
 	      <dt>{{ label_warning }}:</dt><dd>{{ label_no_selected }}</dd>
 	    </dl>
     </template>
+    </div>
+ 
+    <div v-if="screen=='about'">
+    <h4>{{ label_app_info }}</h4>
+	    <dl class="dl-horizontal">
+	      <dt>{{ label_version }}:</dt>
+	      <dd>{{ version_value }}</dd>
+	    </dl>
+	    <dl class="dl-horizontal">
+	      <dt>{{ label_guide }}:</dt>
+	      <dd><a :href="guide_url" target="_help">{{ label_view }}</a></dd>
+	    </dl>
     </div>
 
     <div v-show="screen=='select'" style="text-align: center;">
@@ -318,6 +331,12 @@ var app = new Vue({
     ws_protocol: '',
     chat_socket: null,
     chat_connected: false,
+    label_app_info: "{% trans "app info" %}",
+    label_version: "{% trans "version" %}",
+    version_value: "0.10 NWA",
+    label_guide: "{% trans "user guide" %}",
+    label_view: "{% trans "view" %}",
+    guide_url: "/help/feedback/",
     label_event_info: "{% trans "event info" %}",
     label_error: "{% trans "error" %}",
     label_user: "{% trans "user" %}",
@@ -336,6 +355,7 @@ var app = new Vue({
     label_react: "{% trans "react" %}",
     label_chat: "{% trans "chat" %}",
     label_chat_log: "{% trans "chat log" %}",
+    label_about: "{% trans "about" %}",
     label_exit: "{% trans "exit" %}",
     placeholder_event: "{% trans "no event selected yet" %}",
     placeholder_chat: "{% trans "type a message and hit 'enter' key" %}",
