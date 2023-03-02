@@ -47,6 +47,16 @@ def word_array():
     return array
 
 def feedback_dashboard(request, event_code):
+    template = 'feedback/feedback_dashboard.html'
+    context = {}
+    context['user_name'] = ''
+    context['event_code'] = ''
+    context['next_events'] = []
+    context['word_array'] = json.dumps(word_array())
+    if request.user.is_anonymous:
+        context['error'] =  _('not logged in')
+        return render(request, template, context)
+    assert event_code
     event_id, user_id = unshuffle_integers(event_code)
     if event_id and user_id:
         assert request.user.id == user_id
@@ -57,45 +67,48 @@ def feedback_dashboard(request, event_code):
             event = events[0]
             now = timezone.now()
             not_running = now < event.start or now > event.end
-            context = event_dict(event, user.id)
+            context = event_dict(event, user_id)
             context['user_name'] = user_name
             context['word_array'] = json.dumps(word_array()) 
             context['not_running'] = not_running
             context['VUE'] = True
-            return render(request, 'feedback/feedback_dashboard.html', context)
-    return render(request, 'feedback/feedback_dashboard.html', {
-       'error': _('an invalid event code was specified')                                             
-    })
+            return render(request, template, context)
+    else:
+        context['error'] = _('an invalid event code was specified')
+        return render(request, template, context)
 
 def feedback_attendee(request, event_code=None):
+    template = 'feedback/feedback_attendee.html'
+    context = {}
+    context['user_name'] = ''
+    context['event_code'] = ''
+    context['word_array'] = json.dumps(word_array())
     user = request.user
-    if user.is_anonymous and not event_code:
-        return render(request, 'feedback/feedback_attendee.html', {
-                'warning': _('user is anonymous and event is not specified')  
-            })
-    elif not event_code:                                         
+    if user.is_anonymous:
+        context['error'] =  _('not logged in')
+        return render(request, template, context)
+    if not event_code:                                         
         context = get_next_events(request, return_context=True)
-        context['word_array'] = json.dumps(word_array()) 
+        context['word_array'] = json.dumps(word_array())
         context['warning'] = _('event is not specified')
-        return render(request, 'feedback/feedback_attendee.html', context)
+        return render(request, template, context)
     event_id, user_id = unshuffle_integers(event_code)
-    if event_id and user_id:
-        assert request.user.id == user_id
-        user = User.objects.get(id=user_id)
-        user_name = user.get_display_name()
-        events = Event.objects.filter(id=event_id)
-        if events:
-            event = events[0]
-            now = timezone.now()
-            not_running = now < event.start or now > event.end
-            context = event_dict(event, user.id)
-            context['user_name'] = user_name
-            context['word_array'] = json.dumps(word_array()) 
-            context['not_running'] = not_running
-            return render(request, 'feedback/feedback_attendee.html', context)
-    return render(request, 'feedback/feedback_attendee.html', {
-       'error': _('an invalid event code was specified')                                             
-    })
+    assert request.user.id == user_id
+    user = User.objects.get(id=user_id)
+    user_name = user.get_display_name()
+    events = Event.objects.filter(id=event_id)
+    if events:
+        event = events[0]
+        now = timezone.now()
+        not_running = now < event.start or now > event.end
+        context = event_dict(event, user_id)
+        context['user_name'] = user_name
+        context['word_array'] = json.dumps(word_array()) 
+        context['not_running'] = not_running
+        return render(request, template, context)
+    else:
+        context['error'] =_('an invalid event code was specified')
+        return render(request, template, context)
 
 def event_dict(event, user_id):
     project = get_event_project(event)
@@ -103,7 +116,7 @@ def event_dict(event, user_id):
     start_date = formats.date_format(event.start.astimezone(CET), settings.DATETIME_FORMAT)
     now = timezone.now()
     not_running = now < event.start or now > event.end
-    return {
+    context = {
         'event_code': private_code(event, user_id),
         'event_name': 'event_{}'.format(event.id),
         'event_title': event.title,
@@ -113,6 +126,7 @@ def event_dict(event, user_id):
         'name': '{} - {}'.format(event.title, start_date),
         'not_running': not_running
     }
+    return context
 
 @csrf_exempt
 def get_next_events(request, return_context=False):
@@ -121,9 +135,10 @@ def get_next_events(request, return_context=False):
     user = request.user
     data = {}
     if user.is_anonymous:
-        data['warning'] =  _('please authenticate')
+        data['error'] =  _('not logged in')
         data['user_name'] = ''
         data['event_code'] = ''
+        data['next_events'] = []
     else:
         data['warning'] = ''
         data['user_name'] = user.get_display_name()
@@ -225,7 +240,6 @@ def reaction_message(request):
                 if not project.is_member(user):
                     data['warning'] = _('user is not member of community/project')
                 else:
-                    print('track_action 0')
                     track_action(request, user, verb, event, target=project, response=reaction)
                     # push line to all raw feedback visualizers
                     reaction_item_producer(group_name, message)
@@ -278,6 +292,16 @@ def chat_message(request):
                     track_action(request, user, verb, event, target=project)
                     # push line to all raw feedback visualizers
                     chat_item_producer(group_name, message)
+    return JsonResponse(data)
+
+@csrf_exempt
+def message_prefix(request):
+    user = request.user
+    user_name = user.is_anonymous and 'anonymous' or user.get_display_name()
+    now = timezone.now()
+    CET = pytz.timezone(settings.TIME_ZONE)
+    prefix = '{}-{}: '.format(str(now.astimezone(CET))[11:19], user_name)
+    data = {'prefix': prefix}
     return JsonResponse(data)
 
 # https://stackoverflow.com/questions/70159895/django-send-events-via-websocket-to-all-clients

@@ -84,6 +84,11 @@ h3.header span a {
   color: orange;
   font-size: 1.2em;
 }
+.txt-error {
+  margin-top:0.8em;
+  color: red;
+  font-size: 1.2em;
+}
 @media (max-width: 430px) {
   .dl-horizontal dt {
     display:inline-block;
@@ -192,6 +197,15 @@ li {
   </div>
 
   <div class="container">
+
+<div v-if="error">
+    <dl class="dl-horizontal txt-error">
+      <dt>{{ label_error }}:</dt>
+      <dd>{{ error }}</dd>
+    </dl>
+</div>
+<template v-if="!error && !warning">
+
     <div v-if="screen=='cover'" class="row">
       <div class="col-sm-4" style="padding:0"></div>
       <div class="col-sm-4" style="padding:0"><p class="action-title"><img v-bind:src="img_cover" style="width:100%" /></p></div>
@@ -218,19 +232,25 @@ li {
 	      <dt>{{ label_end_date }}:</dt><dd>{{ end_date }}</dd>
 	    </dl>
 	    <dl v-if="not_running" class="dl-horizontal space-bottom txt-warning">
-	      <dt>{{ label_warning }}:</dt><dd>{{ label_not_running }}</dl</dd>
+	      <dt>{{ label_warning }}:</dt><dd>{{ label_not_running }}</dd>
+	    </dl>
+    </template>
+    <template v-if="!event_code">
+	    <dl v-if="not_running" class="dl-horizontal space-bottom txt-warning">
+	      <dt>{{ label_warning }}:</dt><dd>{{ label_no_selected }}</dd>
 	    </dl>
     </template>
     </div>
 
     <div v-show="screen=='select'" style="text-align: center;">
       <p class="action-title">{{ label_select }}</p>
-<!--
-      <ul v-if="next_events!=null">
-        <li v-for="option in next_events">{{ option.event_title }}</li>
-      </ul>
--->
-      <dropdown :options="next_events" :selected="selected_initial" :key="dropdown_updates" v-on:update-option="on_event_selected" :placeholder="placeholder_event"></dropdown>
+      <div v-if="!next_events || next_events.length<=0" class="txt-warning">
+	     {{ label_no_events }}
+	  </div>
+      <dropdown
+        v-if="next_events && next_events.length>0"
+      	:options="next_events" :selected="selected_initial" :key="dropdown_updates" v-on:update-option="on_event_selected" :placeholder="placeholder_event">
+      </dropdown>
     </div>
 
     <div v-if="screen=='react'">
@@ -240,12 +260,15 @@ li {
       </ul>
     </div>
 
-    <div v-if="screen=='chat'">
+    <div v-show="screen=='chat'">
       <p class="action-title">{{ label_chat }}</p>
       <div class="chat">
         <textarea name="chat_log" v-model="chat_log" rows="10" readonly></textarea>
         <input type="text" name="chat_message" v-model="chat_message" v-on:keyup.enter="send_chat_message" ref="chat_message_input" :placeholder="placeholder_chat"></input></div>
     </div>
+
+</template>
+
   </div>
 </div>
 {% endverbatim %}
@@ -290,19 +313,23 @@ var app = new Vue({
     dropdown_updates: 0,
     chat_message: '',
     chat_log: '',
+    prefix: '',
     readonly: 'readonly',
     ws_protocol: '',
     chat_socket: null,
     chat_connected: false,
     label_event_info: "{% trans "event info" %}",
+    label_error: "{% trans "error" %}",
     label_user: "{% trans "user" %}",
     label_unknown_user: "{% trans "unknown" %}",
     label_project: "{% trans "project" %}",
     label_event: "{% trans "event" %}",
     label_no_event: "{% trans "no event" %}",
+    label_no_events: "{% trans "no events to select" %}",
     label_start_date: "{% trans "start time" %}",
     label_end_date: "{% trans "end time" %}",
     label_warning: "{% trans "warning" %}",
+    label_no_selected: "{% trans "no event selected" %}",
     label_not_running: "{% trans "event not running" %}",
     label_cover: "{% trans "home" %}",
     label_select: "{% trans "select event" %}",
@@ -327,6 +354,7 @@ var app = new Vue({
   },
   mounted: function () {
     console.log('mounted');
+    this.chat_setup();
   },
   methods: {
     async set_screen(screen) {
@@ -335,10 +363,13 @@ var app = new Vue({
       $('#menuButton i').attr("class","fa fa-bars");
       if (screen=='select')
         this.get_next_events ();
-	  else if (screen=='chat') {
-		await Vue.nextTick();
-        this.chat_setup();
-      }
+	  else if (screen=='chat')
+		if (this.chat_connected)
+          this.$refs.chat_message_input.focus();
+		else {
+		  await Vue.nextTick();
+          this.chat_setup();
+        }
     },
 	open_chat_socket() {
 		this.chat_socket = new WebSocket(this.ws_protocol + window.location.host + '/ws/chat/' + this.event_name + '/');
@@ -353,10 +384,10 @@ var app = new Vue({
 		    };
 		    this.chat_socket.onmessage = (event) => {
 		      console.log(event);
-		      data = JSON.parse(event.data);
-		      chat_message = data.message;
+		      var data = JSON.parse(event.data);
+		      var chat_message = data.message;
 		      if (this.chat_log)
-		        this.chat_log += ('\r\n' + chat_message);
+		        this.chat_log += ('\n' + chat_message);
 		      else
 		        this.chat_log = chat_message;
 		    };
@@ -414,7 +445,6 @@ var app = new Vue({
 		        user_name: this.user_name,
 		    };
 		    this.chat_socket.send(JSON.stringify(json));
-		    this.chat_log += (this.chat_message + '\r\n');
 		    this.chat_message = '';
 			this.$refs.chat_message_input.focus();
 		}
