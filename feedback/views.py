@@ -240,7 +240,7 @@ def reaction_message(request):
                 if not project.is_member(user):
                     data['warning'] = _('user is not member of community/project')
                 else:
-                    track_action(request, user, verb, event, target=project, response=reaction)
+                    track_action(request, user, verb, event, target=project, response='reaction:'+reaction)
                     # push line to all raw feedback visualizers
                     reaction_item_producer(group_name, message)
     return JsonResponse(data)
@@ -284,13 +284,13 @@ def chat_message(request):
                 data['warning'] = _('event is not running')
             else:
                 project = get_event_project(event)
-                CET = pytz.timezone(settings.TIME_ZONE)
-                message = '{}-{}: {}'.format(str(now.astimezone(CET))[11:19], user_name, message)
                 if not project.is_member(user):
                     data['warning'] = _('user is not member of community/project')
                 else:
-                    track_action(request, user, verb, event, target=project)
+                    track_action(request, user, verb, event, target=project, response='chat:'+message)
                     # push line to all raw feedback visualizers
+                    CET = pytz.timezone(settings.TIME_ZONE)
+                    message = '{}-{}: {}'.format(str(now.astimezone(CET))[11:19], user_name, message)
                     chat_item_producer(group_name, message)
     return JsonResponse(data)
 

@@ -246,12 +246,28 @@ li {
     <div v-if="screen=='about'">
     <h4>{{ label_app_info }}</h4>
 	    <dl class="dl-horizontal">
+	      <dt>{{ label_name }}:</dt>
+	      <dd>{{ name_value }}</dd>
+	    </dl>
+	    <dl class="dl-horizontal">
 	      <dt>{{ label_version }}:</dt>
 	      <dd>{{ version_value }}</dd>
 	    </dl>
 	    <dl class="dl-horizontal">
+	      <dt>{{ label_delete_cache }}:</dt>
+	      <dd><a :href="reload_url">{{ label_reload }}</a></dd>
+	    </dl>
+	    <dl class="dl-horizontal">
 	      <dt>{{ label_guide }}:</dt>
 	      <dd><a :href="guide_url" target="_help">{{ label_view }}</a></dd>
+	    </dl>
+	    <dl class="dl-horizontal">
+	      <dt>{{ label_author }}:</dt>
+	      <dd>{{ author_value }}</dd>
+	    </dl>
+	    <dl class="dl-horizontal">
+	      <dt>{{ label_funding }}:</dt>
+	      <dd>{{ funding_value }}</dd>
 	    </dl>
     </div>
 
@@ -332,8 +348,17 @@ var app = new Vue({
     chat_socket: null,
     chat_connected: false,
     label_app_info: "{% trans "app info" %}",
+	label_name: "{% trans "name" %}",
+	name_value: "The Student Feedback App",
+	label_author: "{% trans "authors" %}",
+	author_value: "Link srl & the WE-COLLAB Consortium",
+	label_funding: "{% trans "funding" %}",
+	funding_value: "The Erasmus+ Programme of the EU",
     label_version: "{% trans "version" %}",
     version_value: "0.10 NWA",
+    label_delete_cache: "{% trans "delete cache" %}",
+    label_reload: "{% trans "reload" %}",
+    reload_url: "javascript: window.location.reload(true)",
     label_guide: "{% trans "user guide" %}",
     label_view: "{% trans "view" %}",
     guide_url: "/help/feedback/",
@@ -383,13 +408,14 @@ var app = new Vue({
       $('#menuButton i').attr("class","fa fa-bars");
       if (screen=='select')
         this.get_next_events ();
-	  else if (screen=='chat')
+	  else if (screen=='chat') {
 		if (this.chat_connected)
           this.$refs.chat_message_input.focus();
 		else {
 		  await Vue.nextTick();
           this.chat_setup();
         }
+      }
     },
 	open_chat_socket() {
 		this.chat_socket = new WebSocket(this.ws_protocol + window.location.host + '/ws/chat/' + this.event_name + '/');
@@ -449,6 +475,7 @@ var app = new Vue({
     on_event_selected (option) {
 		console.log('on_event_selected 1', option);
 		this.event_code = option.event_code;
+		this.event_name = option.event_name;
 		this.event_title = option.event_title;
 		this.project_name = option.project_name;
 		this.start_date = option.start_date;
@@ -460,11 +487,27 @@ var app = new Vue({
     send_chat_message() {
 		console.log('send_chat_message');
 		if (this.event_code && this.chat_connected) {
+/*>
 		    var json = {
 		        message: this.chat_message,
 		        user_name: this.user_name,
 		    };
 		    this.chat_socket.send(JSON.stringify(json));
+*/
+			var data = {event_code: this.event_code, message: this.chat_message};
+		    fetch('/feedback/chat/', {
+		      method: 'POST',
+		      headers: { "Content-Type": "application/json", "X-Requested-With": "XMLHttpRequest" },
+		      body: JSON.stringify(data)
+		   	})
+		    .then(response => response.json())
+		    .then(data => {
+				console.log(data);
+				if (!(data['warning'] === undefined))
+					console.log(data['warning']);
+		    })
+		    .catch(err => (console.log(err)))
+/*>*/
 		    this.chat_message = '';
 			this.$refs.chat_message_input.focus();
 		}

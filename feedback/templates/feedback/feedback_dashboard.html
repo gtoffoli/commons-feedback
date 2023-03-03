@@ -148,6 +148,7 @@ var app = new Vue({
   watch: {},
   data: {
     error: null,
+    event_code: '{{ event_code }}',
 	word_array: {{ word_array|safe }},
     decay_factor: 5,
     timer: 0,
@@ -378,10 +379,26 @@ var app = new Vue({
     document.querySelector('#chat-message-submit').onclick = function(e) {
         const messageInputDom = document.querySelector('#chat-message-input');
         const message = messageInputDom.value;
+/*>
         chatSocket.send(JSON.stringify({
             'message': message,
             'user_name': '{{ user_name }}'
         }));
+*/
+		var data = {event_code: '{{ event_code }}', message: message};
+	    fetch('/feedback/chat/', {
+	      method: 'POST',
+	      headers: { "Content-Type": "application/json", "X-Requested-With": "XMLHttpRequest" },
+	      body: JSON.stringify(data)
+	   	})
+	    .then(response => response.json())
+	    .then(data => {
+			console.log(data);
+			if (!(data['warning'] === undefined))
+				console.log(data['warning']);
+	    })
+	    .catch(err => (console.log(err)))
+/*>*/
         messageInputDom.value = '';
     };
 </script>
