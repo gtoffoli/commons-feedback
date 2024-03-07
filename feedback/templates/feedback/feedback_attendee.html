@@ -26,6 +26,11 @@ h4 {
   font-size: 1.2em;
   padding-bottom: 0.3em;
 }
+h5 {
+  font-size: 1.1em;
+  padding-top: 0.2em;
+  padding-bottom: 0.2em;
+}
 h3.header {
   background-color: black;
   padding: 0.6em 0 0.6em 0;
@@ -176,6 +181,9 @@ li {
 .dropdown-menu > li > a:hover {
   background: #efefef;
 }
+input {
+	color: black;
+}
 
 </style>
 </head>
@@ -190,11 +198,18 @@ li {
   <div class="menu" style="z-index:100">
     <ul>
       <li><a href="#" v-on:click="set_screen('cover')">{{ label_cover }}</a></li>
-      <li><a href="#" v-on:click="set_screen('select')">{{ label_select }}</a></li>
-      <li><a href="#" v-on:click="set_screen('react')">{{ label_react }}</a></li>
-      <li><a href="#" v-on:click="set_screen('chat')">{{ label_chat }}</a></li>
-      <li><a href="#" v-on:click="set_screen('about')">{{ label_about }}</a></li>
-<!--  <li><a href="javascript: self.close ()">{{ label_exit }}</a></li> -->
+      <template v-if="!is_anonymous">
+		  <li><a href="#" v-on:click="set_screen('select')">{{ label_select }}</a></li>
+      </template>
+      <template v-else>
+	      <li><a href="#" v-on:click="set_screen('guest')">{{ label_guest }}</a></li>
+      </template>
+      <template v-if="!is_anonymous || guest_id">
+	      <li><a href="#" v-on:click="set_screen('react')">{{ label_react }}</a></li>
+	      <li><a href="#" v-on:click="set_screen('chat')">{{ label_chat }}</a></li>
+      </template>
+	  <li><a href="#" v-on:click="set_screen('about')">{{ label_about }}</a></li>
+	  <!-- <li><a href="javascript: self.close ()">{{ label_exit }}</a></li> -->
     </ul>
   </div>
 
@@ -206,7 +221,8 @@ li {
       <dd>{{ error }}</dd>
     </dl>
 </div>
-<template v-if="!error && !warning">
+
+<template v-if="!error">
 
     <div v-if="screen=='cover'" class="row">
       <div class="col-sm-4" style="padding:0"></div>
@@ -214,13 +230,12 @@ li {
       <div class="col-sm-4" style="padding:0"></div> 
     </div>
  
-    <div v-if="screen!='cover' && screen!='about'">
+    <div v-if="screen!='cover' && screen!='about' && (screen!='guest' || guest_id)">
     <h4>{{ label_event_info }}</h4>
     <dl class="dl-horizontal">
-      <dt>{{ label_user }}:</dt>
-      <dd v-if="user_name">{{ user_name }}</dd><dd v-else>{{ label_anonymous_user }}</dd>
+      <dt>{{ label_user }}:</dt><dd>{{ user_name }}</dd>
     </dl>
-    <template v-if="event_code">
+    <template v-if="event_id">
 	    <dl class="dl-horizontal">
 	      <dt>{{ label_project }}:</dt><dd>{{ project_name }}</dd>
 	    </dl>
@@ -237,15 +252,56 @@ li {
 	      <dt>{{ label_warning }}:</dt><dd>{{ label_not_running }}</dd>
 	    </dl>
     </template>
-    <template v-if="!event_code">
+    <template v-else>
 	    <dl v-if="not_running" class="dl-horizontal space-bottom txt-warning">
-	      <dt>{{ label_warning }}:</dt><dd>{{ label_no_selected }}</dd>
+	      <dt>{{ label_warning }}:</dt><dd>{{ label_not_running }}</dd>
 	    </dl>
     </template>
     </div>
+
+    <div v-if="screen=='guest'" class="row" style="padding-right: 15px; padding-left: 15px;">
+     <p class="action-title">{{ label_guest }}</p>
+	<form method="get" action="" id="guest_identity_form">
+		<template v-if="guest_id">
+          <div class="form-group" style="margin-top: 10px; float: left;">
+            <h5>{{ label_leave_guest_id }}</h5>
+ 	        <button v-on:click="guest_exit()" class="btn btn-default" >{{ button_leave }}</button></dd>
+          </div>
+		</template>
+		<template v-else>
+        <dl class="dl-horizontal">
+          <dt>{{ label_event_code }}:</dt><dd><input type="text" v-model="unverified_event_code" :placeholder="placeholder_generic" size="10" maxlength="10" style="" /></dd>
+        </dl>
+        </div>
+		<div>
+          <div class="form-group" style="margin-top: 10px; float: left;">
+            <h5>{{ label_get_guest_id }} ..</h5>
+ 	        <button v-on:click="guest_application()" :disabled="!guest_can_apply()" class="btn btn-default" >{{ button_get_guest_id }}</button></dd>
+          </div>
+    	  <div class="form-group" style="clear: both;"></div>
+          <h5>.. {{ label_or }} {{ label_declare_id }}</h5>
+          <div class="form-group" style="margin-top: 10px; float: left;">
+	        <dl class="dl-horizontal">
+	          <dt>{{ label_email_address }}:</dt><dd><input type="text" v-model="unverified_email" :placeholder="placeholder_email" size="40" maxlength="40" style="" /></dd>
+	        </dl>
+	        <dl class="dl-horizontal">
+	          <dt>{{ label_first_name }}:</dt><dd><input type="text" v-model="unverified_first_name" :placeholder="placeholder_first_name" size="40" maxlength="20" style="" /></dd>
+	        </dl>
+	        <dl class="dl-horizontal">
+	          <dt>{{ label_last_name }}:</dt><dd><input type="text" v-model="unverified_last_name" :placeholder="placeholder_last_name" size="40" maxlength="20" style="" /></dd>
+	        </dl>
+            <div class="form-group" style="margin-top: 10px;">
+	         <button v-on:click="guest_declaration()" :disabled="!guest_can_declare()"  name="declare_id" id="declare_id" class="btn btn-default" value="declare_id">{{ button_declare_id }}</button>
+			</div>
+          </div>
+		</template>
+    	  <div class="form-group" style="clear: both;"></div>
+		</div>
+	</form>
+    </div>
  
     <div v-if="screen=='about'">
-    <h4>{{ label_app_info }}</h4>
+    <p class="action-title">{{ label_app_info }}</p>
 	    <dl class="dl-horizontal">
 	      <dt>{{ label_name }}:</dt>
 	      <dd>{{ name_value }}</dd>
@@ -325,20 +381,27 @@ var app = new Vue({
     dropdown: dropdown
   },
   data: {
-	screen: "cover",
-    user_name: "{{ user_name }}",
-    project_name: "{{ project_name }}",
-    event_code: "{{ event_code }}",
-    event_name: "{{ event_name }}",
-    event_title: "{{ event_title }}",
-    start_date: "{{ start_date }}",
-    end_date: "{{ end_date }}",
+    screen: `cover`,
+    user_name: `{{ user_name }}`,
+    guest_id: `{{ guest_id }}`,
+    is_anonymous: `{{ is_anonymous }}`,
+    project_name: `{{ project_name }}`,
+    event_id:  `{{ event_id }}`,
+    event_code: `{{ event_code }}`,
+    event_name: `{{ event_name }}`,
+    event_title: `{{ event_title }}`,
+    start_date: `{{ start_date }}`,
+    end_date: `{{ end_date }}`,
     next_events: [],
     selected_initial: {
-    	name: "{% trans "no event" %}",
+    	name: `{% trans "no event" %}`,
 	},
-	error: '',
-	warning: '',
+    unverified_event_code: ``,
+	unverified_email: ``,
+	unverified_first_name: ``,
+	unverified_last_name: ``,
+	error: `{{ error }}`,
+	warning: `{{ warning }}`,
     not_running: true,
     dropdown_updates: 0,
     chat_message: '',
@@ -356,7 +419,7 @@ var app = new Vue({
 	label_funding: "{% trans "funding" %}",
 	funding_value: "The Erasmus+ Programme of the EU",
     label_version: "{% trans "version" %}",
-    version_value: "0.10 NWA",
+    version_value: "0.20 NWA",
     label_delete_cache: "{% trans "delete cache" %}",
     label_reload: "{% trans "reload" %}",
     reload_url: "javascript: window.location.reload(true)",
@@ -382,7 +445,23 @@ var app = new Vue({
     label_chat: "{% trans "chat" %}",
     label_chat_log: "{% trans "chat log" %}",
     label_about: "{% trans "about" %}",
+    label_guest: "{% trans "guest user" %}",
     label_exit: "{% trans "exit" %}",
+    label_or: "{% trans "or" %}",
+    label_get_guest_id: "{% trans "get guest identity for the event"|capfirst %}",
+    button_get_guest_id: "{% trans "get guest user id"|capfirst %}",
+    label_declare_id: "{% trans "provide unverified identity data for the event"|capfirst %}",
+    button_declare_id: "{% trans "send data"|capfirst %}",
+    label_leave_guest_id: "{% trans "leave guest identity"|capfirst %}",
+    button_leave: "{% trans "leave"|capfirst %}",
+    label_event_code: "{% trans "event code" %}",
+    placeholder_generic: "{% trans "enter here" %}",
+    label_email_address: "{% trans "email address" %}",
+    placeholder_email: "{% trans "enter email address here" %}",
+    label_first_name: "{% trans "first name" %}",
+    placeholder_first_name: "{% trans "enter first name here" %}",
+    label_last_name: "{% trans "last name" %}",
+    placeholder_last_name: "{% trans "enter last name here" %}",
     placeholder_event: "{% trans "no event selected yet" %}",
     placeholder_chat: "{% trans "type a message and hit 'enter' key" %}",
     word_array: {{ word_array|safe }},
@@ -395,12 +474,15 @@ var app = new Vue({
     } else {
       this.ws_protocol = 'ws://'
     };
-    this.get_next_events();
-    console.log('created 2', this.next_events, this.selected_initial);
+    if (!this.is_anonymous || this.guest_id) {
+      this.get_next_events();
+      console.log('created 2', this.next_events, this.selected_initial);
+    }
   },
   mounted: function () {
     console.log('mounted');
-    this.chat_setup();
+    if (!this.is_anonymous || this.guest_id)
+      this.chat_setup();
   },
   methods: {
     async set_screen(screen) {
@@ -530,8 +612,53 @@ var app = new Vue({
 		    })
 		    .catch(err => (console.log(err)))
 	    }
-	}
-  }
+	},
+	guest_can_apply() {
+		return (this.unverified_event_code.length>=4)
+	},
+	guest_can_declare() {
+		var validEmail = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/;
+		return (this.unverified_event_code.length>=4 && this.unverified_first_name.length>=3 && this.unverified_last_name.length>=3 && this.unverified_email.match(validEmail))
+	},
+	guest_application() {
+		console.log('guest_application_0');
+		if (this.unverified_event_code) {
+			var data = {event_code: this.unverified_event_code};
+			console.log('guest_application_1', data);
+		    fetch('/feedback/guest_application/', {
+		      method: 'POST',
+		      headers: { "Content-Type": "application/json", "X-Requested-With": "XMLHttpRequest" },
+		      body: JSON.stringify(data)
+		   	})
+		    .then(response => response.json())
+		    .then(data => {
+				console.log('guest_application_2', data);
+	            for (var key in data) {
+	                this[key] = data[key];
+	            };
+		    })
+		    .catch(err => (console.log(err)))
+	    }
+	},
+	guest_exit() {
+		console.log('guest_exit_0');
+		var data = {};
+	    fetch('/feedback/guest_exit/', {
+	      method: 'POST',
+	      headers: { "Content-Type": "application/json", "X-Requested-With": "XMLHttpRequest" },
+	      body: JSON.stringify(data)
+	   	})
+	    .then(response => response.json())
+	    .then(data => {
+			this.guest_id = '';
+			this.user_name = '';
+			this.event_code = '';
+			this.event_id = '';
+			console.log('guest_exit_1', data);
+	    })
+	    .catch(err => (console.log(err)))
+	},
+  } 
 });
 </script>
 

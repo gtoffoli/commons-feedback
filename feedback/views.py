@@ -10,13 +10,21 @@ from django.utils import timezone, formats
 import django.utils.translation
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth.models import User
+from django.contrib.sessions.models import Session
 from schedule.models import Calendar, Event, CalendarRelation
 from commons.models import Project, get_calendar_events, get_event_project
 from commons.tracking import track_action
 from commons.utils import private_code, unshuffle_integers
+
 from feedback.producers import reaction_item_producer, chat_item_producer
+from feedback.utils import get_guest_account
 # from future.backports.test.pystone import FALSE
 
+def get_user_name(user):
+    if user.is_anonymous:
+        return _('anonymous')
+    else:
+        return '{} {}'.format(user.first_name, user.last_name)
 
 def room_select(request):
     return render(request, 'feedback/room_select.html')
@@ -61,7 +69,7 @@ def feedback_dashboard(request, event_code):
     if event_id and user_id:
         assert request.user.id == user_id
         user = User.objects.get(id=user_id)
-        user_name = user.get_display_name()
+        user_name = get_user_name(user)
         events = Event.objects.filter(id=event_id)
         if events:
             event = events[0]
@@ -81,34 +89,83 @@ def feedback_attendee(request, event_code=None):
     template = 'feedback/feedback_attendee.html'
     context = {}
     context['user_name'] = ''
+    context['guest_id'] = ''
     context['event_code'] = ''
     context['word_array'] = json.dumps(word_array())
+    context['error'] = ''
+    context['warning'] =  ''
     user = request.user
+    context['is_anonymous'] = user.is_anonymous and 'true' or 'false'
     if user.is_anonymous:
-        context['error'] =  _('not logged in')
-        return render(request, template, context)
-    if not event_code:                                         
-        context = get_next_events(request, return_context=True)
-        context['word_array'] = json.dumps(word_array())
+        guest_account = request.session.get("guest_account", None)
+        if guest_account:
+            user_id, event_id = guest_account
+            print('feedback_attendee', guest_account, user_id, event_id)
+            user = User.objects.get(id=user_id)
+            # event = Event.objects.get(id=event_id)
+            context['guest_id'] = user_id
+            context['user_name'] = get_user_name(user)
+            # context['next_events'] get_user_name(user)= [event_dict(event, user.id)]
+        else:
+            context['user_name'] = get_user_name(user)
+            context['warning'] =  _('anonymous: not logged in')
+            return render(request, template, context)
+    elif event_code:                                      
+        event_id, user_id = unshuffle_integers(event_code)
+        assert request.user.id == user_id
+        context['user_name'] = user.get_display_name()
+    else:                                        
+        context.update(get_next_events(request, return_context=True))
+        context['user_name'] = get_user_name(user)
         context['warning'] = _('event is not specified')
         return render(request, template, context)
-    event_id, user_id = unshuffle_integers(event_code)
-    assert request.user.id == user_id
-    user = User.objects.get(id=user_id)
-    user_name = user.get_display_name()
     events = Event.objects.filter(id=event_id)
     if events:
         event = events[0]
         now = timezone.now()
         not_running = now < event.start or now > event.end
-        context = event_dict(event, user_id)
-        context['user_name'] = user_name
-        context['word_array'] = json.dumps(word_array()) 
+        context.update(event_dict(event, user_id))
         context['not_running'] = not_running
         return render(request, template, context)
     else:
         context['error'] =_('an invalid event code was specified')
         return render(request, template, context)
+
+@csrf_exempt
+def guest_application(request):
+    assert request.method == 'POST'
+    data = json.loads(request.body.decode('utf-8'))
+    event_code = data['event_code']
+    event_id, user_id = unshuffle_integers(event_code)
+    events = Event.objects.filter(id=event_id)
+    data = {}
+    if events:
+        event = events[0]
+        user = get_guest_account()
+        if user:
+            user_id = user.id
+            guest_account = [user_id, event.id]
+            request.session['guest_account'] = guest_account
+            user_name = get_user_name(user)
+            now = timezone.now()
+            not_running  = now < event.start or now > event.end
+            data = event_dict(event, user_id)
+            data['guest_id'] = user_id
+            data['user_name'] = user_name
+            data['event_code'] = event_code
+            data['not_running'] = not_running
+            return JsonResponse(data)
+        else:
+            data['error'] =  _('no guest account currently available')
+    else:
+        data['error'] =  _('an invalid event code was specified')
+    return JsonResponse(data)
+
+@csrf_exempt
+def guest_exit(request):
+    guest_account = request.session.get("guest_account", None)
+    data = {'guest_account': guest_account}
+    return JsonResponse(data)
 
 def event_dict(event, user_id):
     project = get_event_project(event)
@@ -117,6 +174,7 @@ def event_dict(event, user_id):
     now = timezone.now()
     not_running = now < event.start or now > event.end
     context = {
+        'event_id': event.id,
         'event_code': private_code(event, user_id),
         'event_name': 'event_{}'.format(event.id),
         'event_title': event.title,
@@ -132,23 +190,29 @@ def event_dict(event, user_id):
 def get_next_events(request, return_context=False):
     """ Build and return a list of candidate events.
     """
+    user_id = None
     user = request.user
+    guest_account = request.session.get("guest_account", None)
     data = {}
-    if user.is_anonymous:
-        data['error'] =  _('not logged in')
-        data['user_name'] = ''
-        data['event_code'] = ''
-        data['next_events'] = []
-    else:
-        data['warning'] = ''
-        data['user_name'] = user.get_display_name()
+    if not user.is_anonymous:
         calendar = Calendar.objects.get(slug='virtual')
         events = get_calendar_events(request, calendar)
         next_events = [event for event in events if event.end > timezone.now()]
         data['next_events'] = [event_dict(event, user.id) for event in next_events]
+    elif guest_account:
+        user_id, event_id = guest_account
+        user = User.objects.get(id=user_id)
+        next_events = Event.objects.filter(id=event_id)
+        data['next_events'] = [event_dict(event, user.id) for event in next_events]
+    else:
+        data['error'] =  _('not logged in')
+        data['user_name'] = ''
+        data['event_code'] = ''
+        data['next_events'] = []
     if return_context:
         return data
-    return JsonResponse(data)
+    else:
+        return JsonResponse(data)
 
 @csrf_exempt
 def validate_event(request):
@@ -218,7 +282,7 @@ def reaction_message(request):
         data['error'] = _('user is unknown')
     else:
         user = users[0]
-        user_name = user.get_display_name()
+        user_name = get_user_name(user)
         data['user_name'] = user_name
         verb = 'commented'
         events = Event.objects.filter(id=event_id)
@@ -267,7 +331,7 @@ def chat_message(request):
         data['error'] = _('user is unknown')
     else:
         user = users[0]
-        user_name = user.get_display_name()
+        user_name = get_user_name(user)
         data['user_name'] = user_name
         verb = 'commented'
         events = Event.objects.filter(id=event_id)
@@ -297,7 +361,12 @@ def chat_message(request):
 @csrf_exempt
 def message_prefix(request):
     user = request.user
-    user_name = user.is_anonymous and 'anonymous' or user.get_display_name()
+    if user.is_anonymous:
+        guest_account = request.session.get("guest_account", None)
+        if guest_account:
+            user_id, event_id = guest_account
+            user = User.objects.get(id=user_id)
+    user_name = get_user_name(user)
     now = timezone.now()
     CET = pytz.timezone(settings.TIME_ZONE)
     prefix = '{}-{}: '.format(str(now.astimezone(CET))[11:19], user_name)
