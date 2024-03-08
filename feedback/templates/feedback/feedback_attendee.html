@@ -222,7 +222,7 @@ input {
     </dl>
 </div>
 
-<template v-if="!error">
+<template>
 
     <div v-if="screen=='cover'" class="row">
       <div class="col-sm-4" style="padding:0"></div>
@@ -265,7 +265,7 @@ input {
 		<template v-if="guest_id">
           <div class="form-group" style="margin-top: 10px; float: left;">
             <h5>{{ label_leave_guest_id }}</h5>
- 	        <button v-on:click="guest_exit()" class="btn btn-default" >{{ button_leave }}</button></dd>
+ 	        <a href="/feedback/guest_exit/" class="btn btn-default" >{{ button_leave }}</a></dd>
           </div>
 		</template>
 		<template v-else>
@@ -384,7 +384,7 @@ var app = new Vue({
     screen: `cover`,
     user_name: `{{ user_name }}`,
     guest_id: `{{ guest_id }}`,
-    is_anonymous: `{{ is_anonymous }}`,
+    is_anonymous: {{ is_anonymous }},
     project_name: `{{ project_name }}`,
     event_id:  `{{ event_id }}`,
     event_code: `{{ event_code }}`,
@@ -406,7 +406,6 @@ var app = new Vue({
     dropdown_updates: 0,
     chat_message: '',
     chat_log: '',
-    prefix: '',
     readonly: 'readonly',
     ws_protocol: '',
     chat_socket: null,
@@ -474,7 +473,7 @@ var app = new Vue({
     } else {
       this.ws_protocol = 'ws://'
     };
-    if (!this.is_anonymous || this.guest_id) {
+    if (!this.is_anonymous) {
       this.get_next_events();
       console.log('created 2', this.next_events, this.selected_initial);
     }
@@ -486,6 +485,7 @@ var app = new Vue({
   },
   methods: {
     async set_screen(screen) {
+      this.error = '';
       this.screen = screen;
       $('.menu').animate({"right":"-200px"}, 500);
       $('#menuButton i').attr("class","fa fa-bars");
@@ -558,6 +558,7 @@ var app = new Vue({
     on_event_selected (option) {
 		console.log('on_event_selected 1', option);
 		this.event_code = option.event_code;
+		this.event_id = option.event_id;
 		this.event_name = option.event_name;
 		this.event_title = option.event_title;
 		this.project_name = option.project_name;
@@ -633,30 +634,13 @@ var app = new Vue({
 		    .then(response => response.json())
 		    .then(data => {
 				console.log('guest_application_2', data);
-	            for (var key in data) {
-	                this[key] = data[key];
-	            };
+	            if (data['error'])
+	                this.error = data['error'];
+	            else
+	                window.location.href = '/feedback/attendee/';
 		    })
 		    .catch(err => (console.log(err)))
 	    }
-	},
-	guest_exit() {
-		console.log('guest_exit_0');
-		var data = {};
-	    fetch('/feedback/guest_exit/', {
-	      method: 'POST',
-	      headers: { "Content-Type": "application/json", "X-Requested-With": "XMLHttpRequest" },
-	      body: JSON.stringify(data)
-	   	})
-	    .then(response => response.json())
-	    .then(data => {
-			this.guest_id = '';
-			this.user_name = '';
-			this.event_code = '';
-			this.event_id = '';
-			console.log('guest_exit_1', data);
-	    })
-	    .catch(err => (console.log(err)))
 	},
   } 
 });

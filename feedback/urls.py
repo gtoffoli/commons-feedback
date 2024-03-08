@@ -13,7 +13,6 @@ urlpatterns = [
     path('validate/', views.validate_event, name="validate_event"),
     path('reaction/', views.reaction_message, name="reaction_message"),
     path('chat/', views.chat_message, name="chat_message"),
-    path('prefix/', views.message_prefix, name="message_prefix"),
     path('room_select/', views.room_select, name='room_select'),
     path('<str:room_name>/', views.chat_room, name='chat_room'),
 ]

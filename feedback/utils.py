@@ -21,7 +21,7 @@ def create_guests(n, group_name='guest', domain='feedback.edu'):
             user.save()
 
 def get_guest_account(group_name='guest'):
-    guests = User.objects.filter(groups__name=group_name).filter(Q(last_login=None ) | Q(last_login__lte=timezone.now()-timedelta(days=1)))
+    guests = User.objects.filter(groups__name=group_name).filter(Q(last_login=None ) | Q(last_login__lte=timezone.now()-timedelta(hours=1)))
     # print([[g.username, g.is_active, g.last_login] for g in guests])
     n_guests = guests.count()
     if n_guests:
