@@ -1,5 +1,6 @@
 # feedback/views.py
 
+from random import randint
 import json
 import pytz
 from django.conf import settings
@@ -12,12 +13,12 @@ from django.utils.translation import gettext_lazy as _
 from django.contrib.auth.models import User
 from django.contrib.sessions.models import Session
 from schedule.models import Calendar, Event, CalendarRelation
-from commons.models import Project, get_calendar_events, get_event_project
+from commons.models import Project, get_calendar_events, get_event_project, is_site_member
 from commons.tracking import track_action
 from commons.utils import private_code, unshuffle_integers
 
 from feedback.producers import reaction_item_producer, chat_item_producer
-from feedback.utils import get_guest_account
+from feedback.utils import get_guest_account, get_fake_account
 # from future.backports.test.pystone import FALSE
 
 def get_user_name(user):
@@ -124,7 +125,6 @@ def feedback_attendee(request, event_code=None):
     else:
         context['user_name'] = get_user_name(user)
         context.update(get_next_events(request, return_context=True))
-        print('feedback_attendee', context)
         return render(request, template, context)
 
 @csrf_exempt
@@ -135,14 +135,34 @@ def guest_application(request):
     event_id, user_id = unshuffle_integers(event_code)
     events = Event.objects.filter(id=event_id)
     users = User.objects.filter(id=user_id)
-    data = {'error': ''}
     if events and users and get_event_project(events[0]).is_member(users[0]):
-        guest = get_guest_account()
+        email = data.get('email', '')
+        first_name = data.get('first_name', '')
+        last_name = data.get('last_name', '')
+        data = {'dummy': 'dummy', 'error': ''}
+        if email:
+            assert first_name and last_name
+            users = User.objects.filter(email=email)
+            if users:
+                user = users[0]
+                if user.is_active:
+                    guest = None
+                    data['error'] =  _('a registered user already exists with the same email')
+                elif user.first_name == first_name and user.last_name == last_name:
+                    guest = user
+                else:
+                    guest = None
+                    data['error'] =  _('this email was already used with different first or last name')
+            else:
+                guest = get_fake_account(email, first_name, last_name)
+        else:
+            guest = get_guest_account()
+            if not guest:
+                data['error'] =   _('no guest account currently available')
         if guest:
             request.session['guest_account'] = [guest.id, event_id]
-        else:
-            data['error'] =   _('no guest account currently available')
     else:
+        data = {}
         data['error'] =  _('an invalid event code was specified')
     return JsonResponse(data)
 
@@ -179,7 +199,6 @@ def get_next_events(request, return_context=False):
     calendar = Calendar.objects.get(slug='virtual')
     events = get_calendar_events(request, calendar)
     next_events = [event for event in events if event.end > timezone.now()]
-    print('next_events', next_events)
     data['next_events'] = [event_dict(event, user.id) for event in next_events]
     if return_context:
         return data
@@ -249,7 +268,7 @@ def reaction_message(request):
     event_id, user_id = unshuffle_integers(event_code)
     users = User.objects.filter(id=user_id)
     group_name = ''
-    data = {}
+    data = {'error': '', 'warning': ''}
     if not users:
         data['error'] = _('user is unknown')
     else:
@@ -272,13 +291,17 @@ def reaction_message(request):
             else:
                 project = get_event_project(event)
                 CET = pytz.timezone(settings.TIME_ZONE)
-                message = '{}-{}: {}'.format(str(now.astimezone(CET))[11:19], user_name, reaction)
-                if not project.is_member(user):
-                    data['warning'] = _('user is not member of community/project')
+                if project.is_member(user):
+                    format = '{}-{} PM: {}'
+                elif is_site_member(user):
+                    format = '{}-{} SM: {}'
                 else:
-                    track_action(request, user, verb, event, target=project, response='reaction:'+reaction)
-                    # push line to all raw feedback visualizers
-                    reaction_item_producer(group_name, message)
+                    format = '{}-{} AN: {}'
+                message = format.format(str(now.astimezone(CET))[11:19], user_name, reaction)
+                track_action(request, user, verb, event, target=project, response='reaction:'+reaction)
+                # push line to all raw feedback visualizers
+                reaction_item_producer(group_name, message)
+                
     return JsonResponse(data)
 
 @csrf_exempt
@@ -298,7 +321,7 @@ def chat_message(request):
     event_id, user_id = unshuffle_integers(event_code)
     users = User.objects.filter(id=user_id)
     group_name = ''
-    data = {}
+    data = {'error': '', 'warning': ''}
     if not users:
         data['error'] = _('user is unknown')
     else:
@@ -320,14 +343,17 @@ def chat_message(request):
                 data['warning'] = _('event is not running')
             else:
                 project = get_event_project(event)
-                if not project.is_member(user):
-                    data['warning'] = _('user is not member of community/project')
+                CET = pytz.timezone(settings.TIME_ZONE)
+                if project.is_member(user):
+                    format = '{}-{} PM: {}'
+                elif is_site_member(user):
+                    format = '{}-{} SM: {}'
                 else:
-                    track_action(request, user, verb, event, target=project, response='chat:'+message)
-                    # push line to all raw feedback visualizers
-                    CET = pytz.timezone(settings.TIME_ZONE)
-                    message = '{}-{}: {}'.format(str(now.astimezone(CET))[11:19], user_name, message)
-                    chat_item_producer(group_name, message)
+                    format = '{}-{} AN: {}'
+                message = format.format(str(now.astimezone(CET))[11:19], user_name, message)
+                track_action(request, user, verb, event, target=project, response='chat:'+message)
+                # push line to all raw feedback visualizers
+                chat_item_producer(group_name, message)
     return JsonResponse(data)
 
 # https://stackoverflow.com/questions/70159895/django-send-events-via-websocket-to-all-clients

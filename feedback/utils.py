@@ -22,7 +22,6 @@ def create_guests(n, group_name='guest', domain='feedback.edu'):
 
 def get_guest_account(group_name='guest'):
     guests = User.objects.filter(groups__name=group_name).filter(Q(last_login=None ) | Q(last_login__lte=timezone.now()-timedelta(hours=1)))
-    # print([[g.username, g.is_active, g.last_login] for g in guests])
     n_guests = guests.count()
     if n_guests:
         i_guest = randint(0, n_guests-1)
@@ -32,3 +31,9 @@ def get_guest_account(group_name='guest'):
         return guest
     else:
         return None
+
+def get_fake_account(email, first_name, last_name):
+    fake = User(email=email, username=email, first_name=first_name, last_name=last_name, is_active = False)
+    fake.last_login = timezone.now()
+    fake.save()
+    return fake
