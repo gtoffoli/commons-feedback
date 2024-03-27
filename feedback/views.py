@@ -36,6 +36,7 @@ def word_array():
     def _(x):
         y = django.utils.translation.gettext_lazy(x)
         return str(y)
+    """
     array = [
       { 'text': "louder", 'label': _("louder"), 'help': _("speack louder"), },
       { 'text': "slower", 'label': _("slower"), 'help': _("speak slower"), },
@@ -46,6 +47,15 @@ def word_array():
       { 'text': "context", 'label': _("context"), 'help': _("provide context information"), },
       { 'text': "example", 'label': _("example"), 'help': _("provide an example"), },
       { 'text': "recap", 'label': _("recap"), 'help': _("recap last topic"), }
+    ]
+    """
+    array = [
+      { 'text': "explain", 'label': _("explain"), 'help': _("explain better"), },
+      { 'text': "slower", 'label': _("slow down"), 'help': _("slow down"), },
+      { 'text': "example", 'label': _("give an example"), 'help': _("give an example"), },
+      { 'text': "more", 'label': _("I want to know more"), 'help': _("I want to know more"), },
+      { 'text': "comment", 'label': _("I want to comment"), 'help': _("I want to comment"), },
+      { 'text': "motivating", 'label': _("motivating"), 'help': _("provide motivation"), },
     ]
     for item in array:
         item['last'] = False
