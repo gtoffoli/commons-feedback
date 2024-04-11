@@ -74,8 +74,8 @@ def feedback_dashboard(request, event_code):
         return render(request, template, context)
     assert event_code
     event_id, user_id = unshuffle_integers(event_code)
-    if event_id and user_id:
-        assert request.user.id == user_id
+    if event_id and user_id and request.user.id == user_id:
+        # assert request.user.id == user_id
         user = User.objects.get(id=user_id)
         user_name = get_user_name(user)
         events = Event.objects.filter(id=event_id)
@@ -94,6 +94,7 @@ def feedback_dashboard(request, event_code):
         return render(request, template, context)
 
 def feedback_attendee(request, event_code=None):
+    invalid_request = {'error': _('invalid request')}
     template = 'feedback/feedback_attendee.html'
     context = {}
     context['user_name'] = ''
@@ -125,8 +126,8 @@ def feedback_attendee(request, event_code=None):
             return render(request, template, context)
     elif event_code: # obsolete ?                                  
         event_id, user_id = unshuffle_integers(event_code)
-        if event_id and user_id:
-            assert request.user.id == user_id
+        if event_id and user_id and request.user.id == user_id:
+            # assert request.user.id == user_id
             events = Event.objects.filter(id=event_id)
             context['user_name'] = get_user_name(user)
         else:
@@ -139,7 +140,10 @@ def feedback_attendee(request, event_code=None):
 
 @csrf_exempt
 def guest_application(request):
-    assert request.method == 'POST'
+    invalid_request = {'error': _('invalid request')}
+    # assert request.method == 'POST'
+    if not request.method == 'POST':
+        return JsonResponse(invalid_request)
     data = json.loads(request.body.decode('utf-8'))
     event_code = data['event_code']
     event_id, user_id = unshuffle_integers(event_code)
@@ -151,7 +155,9 @@ def guest_application(request):
         last_name = data.get('last_name', '')
         data = {'dummy': 'dummy', 'error': ''}
         if email:
-            assert first_name and last_name
+            # assert first_name and last_name
+            if not (first_name and last_name):
+                return JsonResponse(invalid_request)
             users = User.objects.filter(email=email)
             if users:
                 user = users[0]
