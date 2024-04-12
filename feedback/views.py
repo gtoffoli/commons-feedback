@@ -4,18 +4,22 @@ from random import randint
 import json
 import pytz
 from django.conf import settings
-from django.http import HttpResponseRedirect, JsonResponse
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
+from django.template.defaultfilters import slugify
 from django.utils import timezone, formats
 import django.utils.translation
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth.models import User
 from django.contrib.sessions.models import Session
+from django.contrib.contenttypes.models import ContentType
 from schedule.models import Calendar, Event, CalendarRelation
 from commons.models import Project, get_calendar_events, get_event_project, is_site_member
+from commons.analytics import filter_actions
 from commons.tracking import track_action
 from commons.utils import private_code, unshuffle_integers
+from actstream.models import Action
 
 from feedback.producers import reaction_item_producer, chat_item_producer
 from feedback.utils import get_guest_account, get_fake_account
@@ -83,6 +87,9 @@ def feedback_dashboard(request, event_code):
             event = events[0]
             now = timezone.now()
             not_running = now < event.start or now > event.end
+            if (now > event.end) and \
+              Action.objects.filter(verb__in=['commented'], action_object_content_type=ContentType.objects.get_for_model(Event), action_object_object_id=event_id).count():
+                context['export_url'] = '/feedback/event_export_json/{}/'.format(event_id)
             context.update(event_dict(event, user_id))
             context['user_name'] = user_name
             context['word_array'] = json.dumps(word_array()) 
@@ -372,6 +379,74 @@ def chat_message(request):
                 chat_item_producer(group_name, message)
     return JsonResponse(data)
 
+export_template_json = """{
+    "id": "%s",
+    "timestamp": "%s",
+    "actor": {
+        "mbox": "mailto:%s",
+        "name": "%s",
+        "objectType": "Agent"
+    },
+    "verb": {
+        "id": "http://adlnet.gov/expapi/verbs/commented",
+        "display": {"en": "commented",}
+    },
+    "result": {
+        "response": "%s"
+    },
+    "object": {
+        "id": "https://www.we-collab.eu/schedule/event/%s/",
+        "definition": {
+            "name": {"en": "%s"},
+            "description": {"en": "%s"},
+            "type": "http://activitystrea.ms/schema/1.0/event",
+        },
+        "objectType": "Activity"
+    },
+    "context": {
+        "platform": "CS we-collab",
+        "contextActivities": {
+            "grouping": [
+                {
+                    "id": "%d",
+                    "definition": {
+                        "name": {"en": "%s"},
+                        "type": "http://activitystrea.ms/schema/1.0/group"
+                    },
+                    "objectType": "Activity"
+                }
+            ]
+        }
+    },
+},
+"""
+
+def event_export_json(request, event_id):
+    """ export comments to event (reactions and chat messages)
+        as xAPI statements in JSON format """
+    event = Event.objects.get(id=event_id)
+    event_title = event.title
+    event_description = event.description
+    project = get_event_project(event)
+    project_id = project.id
+    project_name = project.name
+    # actions = filter_actions(verbs=['commented'], object_content_type=ContentType.objects.get_for_model(Event))
+    actions = Action.objects.filter(verb__in=['commented'], action_object_content_type=ContentType.objects.get_for_model(Event), action_object_object_id=event_id)
+    print('# actions', actions.count())
+    item_list = []
+    for action in actions:
+        user = action.actor
+        actor_name = '{} {}'.format(user.first_name, user.last_name)
+        response = action.description
+        item = export_template_json % (action.id, action.timestamp, user.email, actor_name, response, event_id, event_title, event_description, project_id, project_name)
+        item_list.append(item)
+    item_list.reverse()
+    json = '[\n' + ',\n'.join(item_list) + '\n]'
+    filename = '{}.json'.format(slugify(event_title))
+    response = HttpResponse(json, 'application/json')
+    response['Content-Disposition'] = 'attachment; filename="{}"'.format(filename)
+    return response
+    
 # https://stackoverflow.com/questions/70159895/django-send-events-via-websocket-to-all-clients
 # https://stackoverflow.com/questions/54572288/django-channels-group-send-not-working-properly
 # https://stackoverflow.com/questions/63693032/django-channels-get-the-current-channel

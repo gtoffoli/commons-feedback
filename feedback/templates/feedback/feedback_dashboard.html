@@ -86,8 +86,9 @@
   <div class="navbar">
     <h3 class="text-center">{% trans "Student Feedback App" %} - {% trans "Event Dashboard" %}
       <br><span style="font-size: smaller;">
-        {% trans "project"|capfirst %}: <i>{{ project_name }}</i> -
-        {% trans "event"|capfirst %}: <i>{{ event_title }}</i><br>
+        {% trans "project"|capfirst %}: {{ project_name }}</i> -
+        {% trans "event"|capfirst %}: <i>{% if export_url %}<a href="{{ export_url }}">{{ event_title }}</a>
+        							     {% else %}{{ event_title }}{% endif %}</i><br>
         {% if start_date and end_date %} 
     	        {% trans "time"|capfirst %}: <i>{{ start_date }}</i> - <i>{{ end_date }}</i>
         {% endif %}
