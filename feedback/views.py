@@ -103,7 +103,15 @@ def feedback_dashboard(request, event_code):
 def feedback_attendee(request, event_code=None):
     invalid_request = {'error': _('invalid request')}
     template = 'feedback/feedback_attendee.html'
+    supported_languages = ['en', 'es', 'hr', 'it']
+    language_options = []
+    for language in settings.LANGUAGES:
+        if language[0] in supported_languages:
+            language_options.append({"language_code": language[0], "language_name": language[1]})
     context = {}
+    context['language_options'] = language_options
+    context['language_code'] = 'en'
+    context['language_name'] = 'English'
     context['user_name'] = ''
     context['guest_id'] = ''
     context['event_code'] = ''
