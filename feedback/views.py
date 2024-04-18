@@ -23,7 +23,9 @@ from actstream.models import Action
 
 from feedback.producers import reaction_item_producer, chat_item_producer
 from feedback.utils import get_guest_account, get_fake_account
-# from future.backports.test.pystone import FALSE
+
+import logging
+logger = logging.getLogger('tracking')
 
 def get_user_name(user):
     return '{} {}'.format(user.first_name, user.last_name)
@@ -369,45 +371,54 @@ def reaction_message(request):
         data = json.loads(request.body.decode('utf-8'))
         event_code = data['event_code']
         reaction = data['message']
-    else:
+    else: # this branch is obsolete?
         event_code = request.GET.get('event_code', '')
         reaction = request.GET.get('message', '')
     event_id, user_id = unshuffle_integers(event_code)
-    users = User.objects.filter(id=user_id)
-    group_name = ''
     data = {'error': '', 'warning': ''}
-    if not users:
-        data['error'] = _('user is unknown')
-    else:
-        user = users[0]
-        user_name = get_user_name(user)
-        data['user_name'] = user_name
-        verb = 'commented'
-        events = Event.objects.filter(id=event_id)
-        if not events:
-            data['error'] = _('event is unknown')
+    group_name = ''
+
+    user = request.user
+    if user.is_anonymous:
+        guest_account = request.session.get("guest_account", None)
+        if guest_account:
+            user_id, event_id = guest_account
+            user = User.objects.get(id=user_id)
         else:
-            event = events[0]
-            event_name = 'event_{}'.format(event_id)
-            data['event_name'] = event_name
-            group_name = 'reaction_{}'.format(event_name)
-            data['group_name'] = group_name
-            now = timezone.now()
-            if now < event.start or now > event.end:
-                data['warning'] = _('event is not running')
+            users = User.objects.filter(id=user_id)
+            if not users:
+                data['error'] = _('user is unknown')
             else:
-                project = get_event_project(event)
-                CET = pytz.timezone(settings.TIME_ZONE)
-                if project.is_member(user):
-                    format = '{}-{} PM: {}'
-                elif is_site_member(user):
-                    format = '{}-{} SM: {}'
-                else:
-                    format = '{}-{} AN: {}'
-                message = format.format(str(now.astimezone(CET))[11:19], user_name, reaction)
-                track_action(request, user, verb, event, target=project, response='reaction:'+reaction)
-                # push line to all raw feedback visualizers
-                reaction_item_producer(group_name, message)
+                user = users[0]
+
+    user_name = get_user_name(user)
+    data['user_name'] = user_name
+    verb = 'commented'
+    events = Event.objects.filter(id=event_id)
+    if not events:
+        data['error'] = _('event is unknown')
+    else:
+        event = events[0]
+        event_name = 'event_{}'.format(event_id)
+        data['event_name'] = event_name
+        group_name = 'reaction_{}'.format(event_name)
+        data['group_name'] = group_name
+        now = timezone.now()
+        if now < event.start or now > event.end:
+            data['warning'] = _('event is not running')
+        else:
+            project = get_event_project(event)
+            CET = pytz.timezone(settings.TIME_ZONE)
+            if project.is_member(user):
+                format = '{}-{} PM: {}'
+            elif is_site_member(user):
+                format = '{}-{} SM: {}'
+            else:
+                format = '{}-{} AN: {}'
+            message = format.format(str(now.astimezone(CET))[11:19], user_name, reaction)
+            track_action(request, user, verb, event, target=project, response='reaction:'+reaction)
+            # push line to all raw feedback visualizers
+            reaction_item_producer(group_name, message)
                 
     return JsonResponse(data)
 
@@ -422,45 +433,54 @@ def chat_message(request):
         data = json.loads(request.body.decode('utf-8'))
         event_code = data['event_code']
         message = data['message']
-    else:
+    else: # this branch is obsolete?
         event_code = request.GET.get('event_code', '')
         message = request.GET.get('message', '')
     event_id, user_id = unshuffle_integers(event_code)
-    users = User.objects.filter(id=user_id)
     group_name = ''
     data = {'error': '', 'warning': ''}
-    if not users:
-        data['error'] = _('user is unknown')
-    else:
-        user = users[0]
-        user_name = get_user_name(user)
-        data['user_name'] = user_name
-        verb = 'commented'
-        events = Event.objects.filter(id=event_id)
-        if not events:
-            data['error'] = _('event is unknown')
+
+    user = request.user
+    if user.is_anonymous:
+        guest_account = request.session.get("guest_account", None)
+        if guest_account:
+            user_id, event_id = guest_account
+            user = User.objects.get(id=user_id)
         else:
-            event = events[0]
-            event_name = 'event_{}'.format(event_id)
-            data['event_name'] = event_name
-            group_name = 'chat_{}'.format(event_name)
-            data['group_name'] = group_name
-            now = timezone.now()
-            if now < event.start or now > event.end:
-                data['warning'] = _('event is not running')
+            users = User.objects.filter(id=user_id)
+            if not users:
+                data['error'] = _('user is unknown')
             else:
-                project = get_event_project(event)
-                CET = pytz.timezone(settings.TIME_ZONE)
-                if project.is_member(user):
-                    format = '{}-{} PM: {}'
-                elif is_site_member(user):
-                    format = '{}-{} SM: {}'
-                else:
-                    format = '{}-{} AN: {}'
-                message = format.format(str(now.astimezone(CET))[11:19], user_name, message)
-                track_action(request, user, verb, event, target=project, response='chat:'+message)
-                # push line to all raw feedback visualizers
-                chat_item_producer(group_name, message)
+                user = users[0]
+
+    user_name = get_user_name(user)
+    data['user_name'] = user_name
+    verb = 'commented'
+    events = Event.objects.filter(id=event_id)
+    if not events:
+        data['error'] = _('event is unknown')
+    else:
+        event = events[0]
+        event_name = 'event_{}'.format(event_id)
+        data['event_name'] = event_name
+        group_name = 'chat_{}'.format(event_name)
+        data['group_name'] = group_name
+        now = timezone.now()
+        if now < event.start or now > event.end:
+            data['warning'] = _('event is not running')
+        else:
+            project = get_event_project(event)
+            CET = pytz.timezone(settings.TIME_ZONE)
+            if project.is_member(user):
+                format = '{}-{} PM: {}'
+            elif is_site_member(user):
+                format = '{}-{} SM: {}'
+            else:
+                format = '{}-{} AN: {}'
+            message = format.format(str(now.astimezone(CET))[11:19], user_name, message)
+            track_action(request, user, verb, event, target=project, response='chat:'+message)
+            # push line to all raw feedback visualizers
+            chat_item_producer(group_name, message)
     return JsonResponse(data)
 
 export_template_json = """{
