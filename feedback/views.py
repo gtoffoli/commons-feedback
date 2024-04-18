@@ -10,7 +10,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.template.defaultfilters import slugify
 from django.utils import timezone, formats
 import django.utils.translation
-from django.utils.translation import gettext_lazy as _
+from django.utils.translation import get_language_info, activate, gettext_lazy as _
 from django.contrib.auth.models import User
 from django.contrib.sessions.models import Session
 from django.contrib.contenttypes.models import ContentType
@@ -36,35 +36,40 @@ def chat_room(request, room_name):
         'room_name': room_name
     })
 
-def word_array():
-    def _(x):
-        y = django.utils.translation.gettext_lazy(x)
-        return str(y)
-    """
-    array = [
-      { 'text': "louder", 'label': _("louder"), 'help': _("speack louder"), },
-      { 'text': "slower", 'label': _("slower"), 'help': _("speak slower"), },
-      { 'text': "pause", 'label': _("pause"), 'help': _("pause a little"), },
-      { 'text': "go-on", 'label': _("go on"), 'help': _("restart or proceed"), 'link': "https://google.com" },
-      { 'text': "repeat", 'label': _("repeat"), 'help': _("repeat last sentences"), },
-      { 'text': "explain", 'label': _("explain"), 'help': _("explain better"), },
-      { 'text': "context", 'label': _("context"), 'help': _("provide context information"), },
-      { 'text': "example", 'label': _("example"), 'help': _("provide an example"), },
-      { 'text': "recap", 'label': _("recap"), 'help': _("recap last topic"), }
-    ]
-    """
-    array = [
-      { 'text': "explain", 'label': _("explain"), 'help': _("explain better"), },
-      { 'text': "slower", 'label': _("slow down"), 'help': _("slow down"), },
-      { 'text': "example", 'label': _("give an example"), 'help': _("give an example"), },
-      { 'text': "more", 'label': _("I want to know more"), 'help': _("I want to know more"), },
-      { 'text': "comment", 'label': _("I want to comment"), 'help': _("I want to comment"), },
-      { 'text': "motivating", 'label': _("motivating"), 'help': _("provide motivation"), },
-    ]
-    for item in array:
-        item['last'] = False
-        item['weight'] = 1
-    return array
+"""
+array = [
+  { 'text': "louder", 'label': _("louder"), 'help': _("speack louder"), },
+  { 'text': "slower", 'label': _("slower"), 'help': _("speak slower"), },
+  { 'text': "pause", 'label': _("pause"), 'help': _("pause a little"), },
+  { 'text': "go-on", 'label': _("go on"), 'help': _("restart or proceed"), 'link': "https://google.com" },
+  { 'text': "repeat", 'label': _("repeat"), 'help': _("repeat last sentences"), },
+  { 'text': "explain", 'label': _("explain"), 'help': _("explain better"), },
+  { 'text': "context", 'label': _("context"), 'help': _("provide context information"), },
+  { 'text': "example", 'label': _("example"), 'help': _("provide an example"), },
+  { 'text': "recap", 'label': _("recap"), 'help': _("recap last topic"), }
+]
+array = [
+  { 'text': "explain", 'label': _("explain"), 'help': _("explain better"), },
+  { 'text': "slower", 'label': _("slow down"), 'help': _("slow down"), },
+  { 'text': "example", 'label': _("give an example"), 'help': _("give an example"), },
+  { 'text': "more", 'label': _("I want to know more"), 'help': _("I want to know more"), },
+  { 'text': "comment", 'label': _("I want to comment"), 'help': _("I want to comment"), },
+  { 'text': "motivating", 'label': _("motivating"), 'help': _("provide motivation"), },
+]
+return array
+"""
+
+word_array = [
+      { 'word': "explain", },
+      { 'word': "slower", },
+      { 'word': "example", },
+      { 'word': "more", },
+      { 'word': "comment", },
+      { 'word': "motivating", },
+]
+for item in word_array:
+    item['last'] = 0
+    item['weight'] = 1
 
 def feedback_dashboard(request, event_code):
     template = 'feedback/feedback_dashboard.html'
@@ -72,7 +77,8 @@ def feedback_dashboard(request, event_code):
     context['user_name'] = ''
     context['event_code'] = ''
     context['next_events'] = []
-    context['word_array'] = json.dumps(word_array())
+    # ['word_array'] = json.dumps(word_array())
+    context['word_array'] = word_array
     if request.user.is_anonymous:
         context['error'] =  _('not logged in')
         return render(request, template, context)
@@ -92,7 +98,7 @@ def feedback_dashboard(request, event_code):
                 context['export_url'] = '/feedback/event_export_json/{}/'.format(event_id)
             context.update(event_dict(event, user_id))
             context['user_name'] = user_name
-            context['word_array'] = json.dumps(word_array()) 
+            # context['word_array'] = json.dumps(word_array()) 
             context['not_running'] = not_running
             context['VUE'] = True
             return render(request, template, context)
@@ -100,22 +106,92 @@ def feedback_dashboard(request, event_code):
         context['error'] = _('an invalid event code was specified')
         return render(request, template, context)
 
+def make_attendee_labels():
+    return {
+	'label_app_info': _("app info").lower(),
+	'label_name': _("name").lower(),
+	'label_author': _("authors").lower(),
+	'label_funding': _("funding").lower(),
+	'label_version': _("version").lower(),
+	'label_guide': _("user guide").lower(),
+	'label_select_language': _("language selection").lower(),
+	'label_view': _("view").lower(),
+	'label_event_info': _("event info").lower(),
+	'label_error': _("error").lower(),
+	'label_user': _("user").lower(),
+	'label_unknown_user': _("unknown").lower(),
+	'label_project': _("project").lower(),
+	'label_event': _("event selection").lower(),
+	'label_no_event': _("no event").lower(),
+	'label_no_events': _("no events to select").lower(),
+	'label_start_date': _("start time").lower(),
+	'label_end_date': _("end time").lower(),
+	'label_warning': _("warning").lower(),
+	'label_no_selected': _("no event selected").lower(),
+	'label_not_running': _("event not running").lower(),
+	'label_cover': _("home").lower(),
+	'label_select': _("event").lower(),
+	'label_react': _("react").lower(),
+	'label_chat': _("chat").lower(),
+	'label_chat_log': _("chat log").lower(),
+	'label_language': _("language").lower(),
+	'label_about': _("about").lower(),
+	'label_guest': _("guest user").lower(),
+	'label_exit': _("exit").lower(),
+    "label_explain": _("explain").lower(),
+    "label_slower": _("slow down").lower(),
+    "label_example": _("give an example").lower(),
+    "label_more": _("I want to know more").lower(),
+    "label_comment": _("I want to comment").lower(),
+    "label_motivating": _("motivating").lower(),
+	'label_or': _("or").lower(),
+	'label_current_language': _("current language").lower(),
+	'placeholder_language': _("select the language").lower(),
+	'label_get_guest_id': _("get guest identity for the event").capitalize(),
+	'button_get_guest_id': _("get guest user id").capitalize(),
+	'label_declare_id': _("provide unverified identity data for the event").capitalize(),
+	'button_declare_id': _("send data").capitalize(),
+	'label_leave_guest_id': _("leave guest identity").capitalize(),
+	'button_leave': _("leave").capitalize(),
+	'label_event_code': _("event code").lower(),
+	'placeholder_generic': _("enter here").lower(),
+	'label_email_address': _("email address").lower(),
+	'placeholder_email': _("enter email address here").lower(),
+	'label_first_name': _("first name").lower(),
+	'placeholder_first_name': _("enter first name here").lower(),
+	'label_last_name': _("last name").lower(),
+	'placeholder_last_name': _("enter last name here").lower(),
+	'placeholder_event': _("no event selected yet").lower(),
+	'placeholder_chat': _("type a message and hit 'enter' key").lower(),
+}
+
 def feedback_attendee(request, event_code=None):
     invalid_request = {'error': _('invalid request')}
     template = 'feedback/feedback_attendee.html'
+    context = {}
     supported_languages = ['en', 'es', 'hr', 'it']
     language_options = []
+    labels_dict = {}
+    current_language_code = request.LANGUAGE_CODE
+    context['language_code'] = current_language_code
     for language in settings.LANGUAGES:
-        if language[0] in supported_languages:
-            language_options.append({"language_code": language[0], "language_name": language[1]})
-    context = {}
+        language_code = language[0]
+        language_name = language[1]
+        if language_code in supported_languages:
+            if language_code == current_language_code:
+                    context['language_name'] = language_name         
+            language_options.append({"language_code": language_code, "language_name": language_name})
+            activate(language_code)
+            labels_dict[language_code] = make_attendee_labels()
+            # print(language_code, labels_dict[language_code])
+    activate(current_language_code)
     context['language_options'] = language_options
-    context['language_code'] = 'en'
-    context['language_name'] = 'English'
+    context['labels_dict'] = labels_dict
     context['user_name'] = ''
     context['guest_id'] = ''
     context['event_code'] = ''
-    context['word_array'] = json.dumps(word_array())
+    # context['word_array'] = json.dumps(word_array())
+    context['word_array'] = word_array
     context['error'] = ''
     context['warning'] =  ''
     user = request.user

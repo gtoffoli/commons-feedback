@@ -327,7 +327,7 @@ input {
 	      <dt>{{ labels.label_version }}:</dt>
 	      <dd>{{ version_value }}</dd>
 	    </dl>
-	    <dl class="dl-horizontal">
+	    <dl class="dl-horizontal" v-if="false">
 	      <dt>{{ labels.label_delete_cache }}:</dt>
 	      <dd><a :href="reload_url">{{ labels.label_reload }}</a></dd>
 	    </dl>
@@ -359,7 +359,7 @@ input {
     <div v-if="screen=='react'">
       <p class="action-title">{{ labels.label_react }}</p>
       <ul class="grid-container">
-        <li v-for="item in word_array" class="grid-item btn" v-on:click="reaction(event_code, item.text)">{{ item.label }}</li>
+        <li v-for="item in word_array" class="grid-item btn" v-on:click="reaction(event_code, item.word)">{{ labels['label_'+item.word] }}</li>
       </ul>
     </div>
 
@@ -439,61 +439,7 @@ var app = new Vue({
 	funding_value: "The Erasmus+ Programme of the EU",
     word_array: {{ word_array|safe }},
 	labels: {},
-	labels_dict: {
-    	en: {
-		    label_app_info: "{% trans "app info" %}",
-			label_name: "{% trans "name" %}",
-			label_author: "{% trans "authors" %}",
-			label_funding: "{% trans "funding" %}",
-		    label_version: "{% trans "version" %}",
-		    label_delete_cache: "{% trans "delete cache" %}",
-		    label_reload: "{% trans "reload" %}",
-		    label_guide: "{% trans "user guide" %}",
-		    label_select_language: "{% trans "language selection" %}",
-		    label_view: "{% trans "view" %}",
-		    label_event_info: "{% trans "event info" %}",
-		    label_error: "{% trans "error" %}",
-		    label_user: "{% trans "user" %}",
-		    label_unknown_user: "{% trans "unknown" %}",
-		    label_project: "{% trans "project" %}",
-		    label_event: "{% trans "event selection" %}",
-		    label_no_event: "{% trans "no event" %}",
-		    label_no_events: "{% trans "no events to select" %}",
-		    label_start_date: "{% trans "start time" %}",
-		    label_end_date: "{% trans "end time" %}",
-		    label_warning: "{% trans "warning" %}",
-		    label_no_selected: "{% trans "no event selected" %}",
-		    label_not_running: "{% trans "event not running" %}",
-		    label_cover: "{% trans "home" %}",
-		    label_select: "{% trans "event" %}",
-		    label_react: "{% trans "react" %}",
-		    label_chat: "{% trans "chat" %}",
-		    label_chat_log: "{% trans "chat log" %}",
-		    label_language: "{% trans "language" %}",
-		    label_about: "{% trans "about" %}",
-		    label_guest: "{% trans "guest user" %}",
-		    label_exit: "{% trans "exit" %}",
-		    label_or: "{% trans "or" %}",
-		    label_current_language: "{% trans "current language" %}",
-		    placeholder_language: "{% trans "select the language" %}",
-		    label_get_guest_id: "{% trans "get guest identity for the event"|capfirst %}",
-		    button_get_guest_id: "{% trans "get guest user id"|capfirst %}",
-		    label_declare_id: "{% trans "provide unverified identity data for the event"|capfirst %}",
-		    button_declare_id: "{% trans "send data"|capfirst %}",
-		    label_leave_guest_id: "{% trans "leave guest identity"|capfirst %}",
-		    button_leave: "{% trans "leave"|capfirst %}",
-		    label_event_code: "{% trans "event code" %}",
-		    placeholder_generic: "{% trans "enter here" %}",
-		    label_email_address: "{% trans "email address" %}",
-		    placeholder_email: "{% trans "enter email address here" %}",
-		    label_first_name: "{% trans "first name" %}",
-		    placeholder_first_name: "{% trans "enter first name here" %}",
-		    label_last_name: "{% trans "last name" %}",
-		    placeholder_last_name: "{% trans "enter last name here" %}",
-		    placeholder_event: "{% trans "no event selected yet" %}",
-		    placeholder_chat: "{% trans "type a message and hit 'enter' key" %}",
-		},
-	},
+	labels_dict: {{ labels_dict|safe }}
   },
   created: function () {
     this.swap_language(this.language_code);
@@ -657,11 +603,18 @@ var app = new Vue({
 	    }
 	},
 	swap_language(lang_code) {
-		this.labels = this.labels_dict[lang_code];
+		this.labels = this.labels_dict[this.language_code];
+		/*
+		var current_dict = this.labels_dict[this.language_code];
+		for (var key in current_dict) {
+            this.labels[key] = current_dict[key];
+        };
+        */
 	},
     on_language_selected(option) {
 		console.log('on_language_selected', option)
 		this.language_name = option.language_name;
+        this.swap_language(this.language_code);
 	}
   } 
 });

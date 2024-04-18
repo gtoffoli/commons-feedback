@@ -2,320 +2,324 @@
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
-#
+# 
+# Translators:
+# Giovanni Toffoli <toffoli@linkroma.it>, 2024
+# 
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2024-04-17 22:22+0200\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
-"Language: \n"
+"PO-Revision-Date: 2024-03-27 21:31+0000\n"
+"Last-Translator: Giovanni Toffoli <toffoli@linkroma.it>, 2024\n"
+"Language-Team: Italian (https://app.transifex.com/commons-erasmus-eu-project/teams/43401/it/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Language: it\n"
+"Plural-Forms: nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;\n"
 
 #: .\templates\feedback\feedback_attendee.html:8
 #: .\templates\feedback\feedback_attendee.html:197
 msgid "WE-COLLAB Feedback"
-msgstr ""
+msgstr "WE-COLLAB Feedback"
 
 #: .\templates\feedback\feedback_attendee.html:417 .\views.py:132
 msgid "no event"
-msgstr ""
+msgstr "nessun evento"
 
 #: .\templates\feedback\feedback_dashboard.html:7
 msgid "Student Feedback"
-msgstr ""
+msgstr "Feedback dell'Utente"
 
 #: .\templates\feedback\feedback_dashboard.html:7
 #: .\templates\feedback\feedback_dashboard.html:87
 msgid "Event Dashboard"
-msgstr ""
+msgstr "Quadro d'insieme dell'Evento"
 
 #: .\templates\feedback\feedback_dashboard.html:87
 msgid "Student Feedback App"
-msgstr ""
+msgstr "Student Feedback App"
 
 #: .\templates\feedback\feedback_dashboard.html:89 .\views.py:130
 msgid "project"
-msgstr ""
+msgstr "progetto"
 
 #: .\templates\feedback\feedback_dashboard.html:90 .\views.py:140
 msgid "event"
-msgstr ""
+msgstr "evento"
 
 #: .\templates\feedback\feedback_dashboard.html:93
 msgid "time"
-msgstr ""
+msgstr "data e ora"
 
 #: .\templates\feedback\feedback_dashboard.html:96 .\views.py:138
 msgid "event not running"
-msgstr ""
+msgstr "l'evento non è in corso"
 
 #: .\templates\feedback\feedback_dashboard.html:157
 msgid "verb cloud"
-msgstr ""
+msgstr "nuvola di parole"
 
 #: .\templates\feedback\feedback_dashboard.html:158
 msgid "student reaction log"
-msgstr ""
+msgstr "reazioni degli studenti"
 
 #: .\templates\feedback\feedback_dashboard.html:159 .\views.py:142
 msgid "chat"
-msgstr ""
+msgstr "chat"
 
 #: .\templates\feedback\feedback_dashboard.html:160 .\views.py:172
 msgid "type a message and hit 'enter' key"
-msgstr ""
+msgstr "digita un messaggio e premi il tasto 'enter'"
 
 #: .\views.py:90
 msgid "not logged in"
-msgstr ""
+msgstr "non hai effettuato l'accesso"
 
 #: .\views.py:113 .\views.py:232 .\views.py:280
 msgid "an invalid event code was specified"
-msgstr ""
+msgstr "il codice di evento non è valido"
 
 #: .\views.py:118
 msgid "app info"
-msgstr ""
+msgstr "informazione sull'applicazione"
 
 #: .\views.py:119
 msgid "name"
-msgstr ""
+msgstr "nome"
 
 #: .\views.py:120
 msgid "authors"
-msgstr ""
+msgstr "autori"
 
 #: .\views.py:121
 msgid "funding"
-msgstr ""
+msgstr "finanziamento"
 
 #: .\views.py:122
 msgid "version"
-msgstr ""
+msgstr "versione"
 
 #: .\views.py:123
 msgid "user guide"
-msgstr ""
+msgstr "guida d'utente"
 
 #: .\views.py:124
 msgid "language selection"
-msgstr ""
+msgstr "scelta della lingua"
 
 #: .\views.py:125
 msgid "view"
-msgstr ""
+msgstr "vedi"
 
 #: .\views.py:126
 msgid "event info"
-msgstr ""
+msgstr "informazioni sull'evento"
 
 #: .\views.py:127
 msgid "error"
-msgstr ""
+msgstr "errore"
 
 #: .\views.py:128
 msgid "user"
-msgstr ""
+msgstr "utente"
 
 #: .\views.py:129
 msgid "unknown"
-msgstr ""
+msgstr "sconosciuto"
 
 #: .\views.py:131
 msgid "event selection"
-msgstr ""
+msgstr "selezione dell'evento"
 
 #: .\views.py:133
 msgid "no events to select"
-msgstr ""
+msgstr "non ci sono eventi da selezionare"
 
 #: .\views.py:134
 msgid "start time"
-msgstr ""
+msgstr "inizio"
 
 #: .\views.py:135
 msgid "end time"
-msgstr ""
+msgstr "fine"
 
 #: .\views.py:136
 msgid "warning"
-msgstr ""
+msgstr "avvertimento"
 
 #: .\views.py:137
 msgid "no event selected"
-msgstr ""
+msgstr "non è selezionato alcun evento"
 
 #: .\views.py:139
 msgid "home"
-msgstr ""
+msgstr "copertina"
 
 #: .\views.py:141
 msgid "react"
-msgstr ""
+msgstr "reazioni"
 
 #: .\views.py:143
 msgid "chat log"
-msgstr ""
+msgstr "traccia della chat"
 
 #: .\views.py:144
 msgid "language"
-msgstr ""
+msgstr "lingua"
 
 #: .\views.py:145
 msgid "about"
-msgstr ""
+msgstr "applicazione"
 
 #: .\views.py:146
 msgid "guest user"
-msgstr ""
+msgstr "utente ospite"
 
 #: .\views.py:147
 msgid "exit"
-msgstr ""
+msgstr "esci"
 
 #: .\views.py:148
 msgid "explain"
-msgstr ""
+msgstr "chiarisci meglio"
 
 #: .\views.py:149
 msgid "slow down"
-msgstr ""
+msgstr "più lentamente"
 
 #: .\views.py:150
 msgid "give an example"
-msgstr ""
+msgstr "fornisci un esempio"
 
 #: .\views.py:151
 msgid "I want to know more"
-msgstr ""
+msgstr "vorrei saperne di più"
 
 #: .\views.py:152
 msgid "I want to comment"
-msgstr ""
+msgstr "vorrei fare un commento"
 
 #: .\views.py:153
 msgid "motivating"
-msgstr ""
+msgstr "fornisci qualche motivazione"
 
 #: .\views.py:154
 msgid "or"
-msgstr ""
+msgstr "oppure"
 
 #: .\views.py:155
 msgid "current language"
-msgstr ""
+msgstr "lingua attiva"
 
 #: .\views.py:156
 msgid "select the language"
-msgstr ""
+msgstr "scegli la lingua"
 
 #: .\views.py:157
 msgid "get guest identity for the event"
-msgstr ""
+msgstr "ottieni un'identità ospite, per questo evento"
 
 #: .\views.py:158
 msgid "get guest user id"
-msgstr ""
+msgstr "ottieni un'identità ospite"
 
 #: .\views.py:159
 msgid "provide unverified identity data for the event"
-msgstr ""
+msgstr "fornisci un'identità non verificata, per questo evento"
 
 #: .\views.py:160
 msgid "send data"
-msgstr ""
+msgstr "invia i dati"
 
 #: .\views.py:161
 msgid "leave guest identity"
-msgstr ""
+msgstr "rilascia l'identità ospite"
 
 #: .\views.py:162
 msgid "leave"
-msgstr ""
+msgstr "rilascia"
 
 #: .\views.py:163
 msgid "event code"
-msgstr ""
+msgstr "codice dell'evento"
 
 #: .\views.py:164
 msgid "enter here"
-msgstr ""
+msgstr "digita qui"
 
 #: .\views.py:165
 msgid "email address"
-msgstr ""
+msgstr "indirizzo email"
 
 #: .\views.py:166
 msgid "enter email address here"
-msgstr ""
+msgstr "inserisci qui l'indirizzo email"
 
 #: .\views.py:167
 msgid "first name"
-msgstr ""
+msgstr "nome"
 
 #: .\views.py:168
 msgid "enter first name here"
-msgstr ""
+msgstr "inserisci qui il nome"
 
 #: .\views.py:169
 msgid "last name"
-msgstr ""
+msgstr "cognome"
 
 #: .\views.py:170
 msgid "enter last name here"
-msgstr ""
+msgstr "inserisci qui il cognome"
 
 #: .\views.py:171
 msgid "no event selected yet"
-msgstr ""
+msgstr "ancora non è stato selezionato un evento"
 
 #: .\views.py:176 .\views.py:241
 msgid "invalid request"
-msgstr ""
+msgstr "richiesta non valida"
 
 #: .\views.py:222
 msgid "anonymous"
-msgstr ""
+msgstr "anonimo"
 
 #: .\views.py:223
 msgid "anonymous: not logged in"
-msgstr ""
+msgstr "anonimo: non autenticato"
 
 #: .\views.py:264
 msgid "a registered user already exists with the same email"
-msgstr ""
+msgstr "esiste già un utente registrato con la stessa email"
 
 #: .\views.py:269
 msgid "this email was already used with different first or last name"
 msgstr ""
+"l'email è già stata usata insieme ad un nome o ad un cognome differente"
 
 #: .\views.py:275
 msgid "no guest account currently available"
-msgstr ""
+msgstr "attualmente non è disponibile un'utenza ospite"
 
 #: .\views.py:341 .\views.py:387 .\views.py:440
 msgid "user is unknown"
-msgstr ""
+msgstr "l'utente è sconosciuto"
 
 #: .\views.py:345
 msgid "user is not authorized"
-msgstr ""
+msgstr "l'utente non è autorizzato"
 
 #: .\views.py:347
 msgid "user email is invalid"
-msgstr ""
+msgstr "l'indirizzo email non è valido"
 
 #: .\views.py:352 .\views.py:395 .\views.py:448
 msgid "event is unknown"
-msgstr ""
+msgstr "l'evento è sconosciuto"
 
 #: .\views.py:362 .\views.py:404 .\views.py:457
 msgid "event is not running"
-msgstr ""
+msgstr "l'evento non è in corso"

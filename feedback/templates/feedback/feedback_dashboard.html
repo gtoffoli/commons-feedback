@@ -183,7 +183,7 @@ var app = new Vue({
     addWord(word) {
       this.word_array.forEach(
           function(elem, index) {
-            if (elem['text'] === word) {
+            if (elem['word'] === word) {
               elem['weight'] += 0.5;
               elem['last'] = true;
             } else elem['last'] = false;
@@ -278,7 +278,7 @@ var app = new Vue({
       word_span.className = "w" + weight;
       if (word.last)
         word_span.className += ' last';
-      var textNode = document.createTextNode(word.text);
+      var textNode = document.createTextNode(word.word);
       word_span.appendChild(textNode);
       if(typeof word.link !== 'undefined'){
       	// Create a link

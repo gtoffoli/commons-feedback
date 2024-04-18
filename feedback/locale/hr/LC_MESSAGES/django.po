@@ -11,7 +11,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-27 22:11+0100\n"
+"POT-Creation-Date: 2024-04-17 22:22+0200\n"
 "PO-Revision-Date: 2024-03-27 21:31+0000\n"
 "Last-Translator: Giovanni Toffoli <toffoli@linkroma.it>, 2024\n"
 "Language-Team: Croatian (https://app.transifex.com/commons-erasmus-eu-project/teams/43401/hr/)\n"
@@ -22,202 +22,12 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
 
 #: .\templates\feedback\feedback_attendee.html:8
-#: .\templates\feedback\feedback_attendee.html:194
+#: .\templates\feedback\feedback_attendee.html:197
 msgid "WE-COLLAB Feedback"
-msgstr ""
+msgstr "WE-COLLAB Feedback"
 
-#: .\templates\feedback\feedback_attendee.html:396
-#: .\templates\feedback\feedback_attendee.html:433
+#: .\templates\feedback\feedback_attendee.html:417 .\views.py:132
 msgid "no event"
-msgstr ""
-
-#: .\templates\feedback\feedback_attendee.html:412
-msgid "app info"
-msgstr ""
-
-#: .\templates\feedback\feedback_attendee.html:413
-msgid "name"
-msgstr ""
-
-#: .\templates\feedback\feedback_attendee.html:415
-msgid "authors"
-msgstr ""
-
-#: .\templates\feedback\feedback_attendee.html:417
-msgid "funding"
-msgstr ""
-
-#: .\templates\feedback\feedback_attendee.html:419
-msgid "version"
-msgstr ""
-
-#: .\templates\feedback\feedback_attendee.html:421
-msgid "delete cache"
-msgstr ""
-
-#: .\templates\feedback\feedback_attendee.html:422
-msgid "reload"
-msgstr ""
-
-#: .\templates\feedback\feedback_attendee.html:424
-msgid "user guide"
-msgstr ""
-
-#: .\templates\feedback\feedback_attendee.html:425
-msgid "view"
-msgstr ""
-
-#: .\templates\feedback\feedback_attendee.html:427
-msgid "event info"
-msgstr ""
-
-#: .\templates\feedback\feedback_attendee.html:428
-msgid "error"
-msgstr ""
-
-#: .\templates\feedback\feedback_attendee.html:429
-msgid "user"
-msgstr ""
-
-#: .\templates\feedback\feedback_attendee.html:430
-msgid "unknown"
-msgstr ""
-
-#: .\templates\feedback\feedback_attendee.html:431
-#: .\templates\feedback\feedback_dashboard.html:89
-msgid "project"
-msgstr ""
-
-#: .\templates\feedback\feedback_attendee.html:432
-#: .\templates\feedback\feedback_dashboard.html:90
-msgid "event"
-msgstr ""
-
-#: .\templates\feedback\feedback_attendee.html:434
-msgid "no events to select"
-msgstr ""
-
-#: .\templates\feedback\feedback_attendee.html:435
-msgid "start time"
-msgstr ""
-
-#: .\templates\feedback\feedback_attendee.html:436
-msgid "end time"
-msgstr ""
-
-#: .\templates\feedback\feedback_attendee.html:437
-msgid "warning"
-msgstr ""
-
-#: .\templates\feedback\feedback_attendee.html:438
-msgid "no event selected"
-msgstr ""
-
-#: .\templates\feedback\feedback_attendee.html:439
-#: .\templates\feedback\feedback_dashboard.html:95
-msgid "event not running"
-msgstr ""
-
-#: .\templates\feedback\feedback_attendee.html:440
-msgid "home"
-msgstr ""
-
-#: .\templates\feedback\feedback_attendee.html:441
-msgid "select event"
-msgstr ""
-
-#: .\templates\feedback\feedback_attendee.html:442
-msgid "react"
-msgstr ""
-
-#: .\templates\feedback\feedback_attendee.html:443
-#: .\templates\feedback\feedback_dashboard.html:158
-msgid "chat"
-msgstr ""
-
-#: .\templates\feedback\feedback_attendee.html:444
-msgid "chat log"
-msgstr ""
-
-#: .\templates\feedback\feedback_attendee.html:445
-msgid "about"
-msgstr ""
-
-#: .\templates\feedback\feedback_attendee.html:446
-msgid "guest user"
-msgstr ""
-
-#: .\templates\feedback\feedback_attendee.html:447
-msgid "exit"
-msgstr ""
-
-#: .\templates\feedback\feedback_attendee.html:448
-msgid "or"
-msgstr ""
-
-#: .\templates\feedback\feedback_attendee.html:449
-msgid "get guest identity for the event"
-msgstr ""
-
-#: .\templates\feedback\feedback_attendee.html:450
-msgid "get guest user id"
-msgstr ""
-
-#: .\templates\feedback\feedback_attendee.html:451
-msgid "provide unverified identity data for the event"
-msgstr ""
-
-#: .\templates\feedback\feedback_attendee.html:452
-msgid "send data"
-msgstr ""
-
-#: .\templates\feedback\feedback_attendee.html:453
-msgid "leave guest identity"
-msgstr ""
-
-#: .\templates\feedback\feedback_attendee.html:454
-msgid "leave"
-msgstr ""
-
-#: .\templates\feedback\feedback_attendee.html:455
-msgid "event code"
-msgstr ""
-
-#: .\templates\feedback\feedback_attendee.html:456
-msgid "enter here"
-msgstr ""
-
-#: .\templates\feedback\feedback_attendee.html:457
-msgid "email address"
-msgstr ""
-
-#: .\templates\feedback\feedback_attendee.html:458
-msgid "enter email address here"
-msgstr ""
-
-#: .\templates\feedback\feedback_attendee.html:459
-msgid "first name"
-msgstr "ime"
-
-#: .\templates\feedback\feedback_attendee.html:460
-msgid "enter first name here"
-msgstr ""
-
-#: .\templates\feedback\feedback_attendee.html:461
-msgid "last name"
-msgstr "prezime"
-
-#: .\templates\feedback\feedback_attendee.html:462
-msgid "enter last name here"
-msgstr ""
-
-#: .\templates\feedback\feedback_attendee.html:463
-msgid "no event selected yet"
-msgstr ""
-
-#: .\templates\feedback\feedback_attendee.html:464
-#: .\templates\feedback\feedback_dashboard.html:159
-msgid "type a message and hit 'enter' key"
 msgstr ""
 
 #: .\templates\feedback\feedback_dashboard.html:7
@@ -233,94 +43,282 @@ msgstr ""
 msgid "Student Feedback App"
 msgstr ""
 
-#: .\templates\feedback\feedback_dashboard.html:92
+#: .\templates\feedback\feedback_dashboard.html:89 .\views.py:130
+msgid "project"
+msgstr ""
+
+#: .\templates\feedback\feedback_dashboard.html:90 .\views.py:140
+msgid "event"
+msgstr ""
+
+#: .\templates\feedback\feedback_dashboard.html:93
 msgid "time"
 msgstr "vrijeme"
 
-#: .\templates\feedback\feedback_dashboard.html:156
-msgid "verb cloud"
+#: .\templates\feedback\feedback_dashboard.html:96 .\views.py:138
+msgid "event not running"
 msgstr ""
 
 #: .\templates\feedback\feedback_dashboard.html:157
+msgid "verb cloud"
+msgstr ""
+
+#: .\templates\feedback\feedback_dashboard.html:158
 msgid "student reaction log"
 msgstr ""
 
-#: .\views.py:53
-msgid "explain"
-msgstr "pojasniti"
-
-#: .\views.py:53
-msgid "explain better"
+#: .\templates\feedback\feedback_dashboard.html:159 .\views.py:142
+msgid "chat"
 msgstr ""
 
-#: .\views.py:54
-msgid "slow down"
-msgstr "usporiti"
-
-#: .\views.py:55
-msgid "give an example"
-msgstr "dopuniti primjerom"
-
-#: .\views.py:56
-msgid "I want to know more"
-msgstr "želim znati više"
-
-#: .\views.py:57
-msgid "I want to comment"
-msgstr "želim komentirati"
-
-#: .\views.py:58
-msgid "motivating"
-msgstr "poticajno"
-
-#: .\views.py:58
-msgid "provide motivation"
+#: .\templates\feedback\feedback_dashboard.html:160 .\views.py:172
+msgid "type a message and hit 'enter' key"
 msgstr ""
 
-#: .\views.py:73
+#: .\views.py:90
 msgid "not logged in"
 msgstr ""
 
-#: .\views.py:93 .\views.py:133 .\views.py:176
+#: .\views.py:113 .\views.py:232 .\views.py:280
 msgid "an invalid event code was specified"
 msgstr ""
 
+#: .\views.py:118
+msgid "app info"
+msgstr ""
+
+#: .\views.py:119
+msgid "name"
+msgstr ""
+
+#: .\views.py:120
+msgid "authors"
+msgstr ""
+
+#: .\views.py:121
+msgid "funding"
+msgstr ""
+
+#: .\views.py:122
+msgid "version"
+msgstr ""
+
 #: .\views.py:123
-msgid "anonymous"
-msgstr "anonimni"
+msgid "user guide"
+msgstr ""
 
 #: .\views.py:124
-msgid "anonymous: not logged in"
+msgid "language selection"
+msgstr ""
+
+#: .\views.py:125
+msgid "view"
+msgstr ""
+
+#: .\views.py:126
+msgid "event info"
+msgstr ""
+
+#: .\views.py:127
+msgid "error"
+msgstr ""
+
+#: .\views.py:128
+msgid "user"
+msgstr ""
+
+#: .\views.py:129
+msgid "unknown"
+msgstr ""
+
+#: .\views.py:131
+msgid "event selection"
+msgstr ""
+
+#: .\views.py:133
+msgid "no events to select"
+msgstr ""
+
+#: .\views.py:134
+msgid "start time"
+msgstr ""
+
+#: .\views.py:135
+msgid "end time"
+msgstr ""
+
+#: .\views.py:136
+msgid "warning"
+msgstr ""
+
+#: .\views.py:137
+msgid "no event selected"
+msgstr ""
+
+#: .\views.py:139
+msgid "home"
+msgstr ""
+
+#: .\views.py:141
+msgid "react"
+msgstr ""
+
+#: .\views.py:143
+msgid "chat log"
+msgstr ""
+
+#: .\views.py:144
+msgid "language"
+msgstr ""
+
+#: .\views.py:145
+msgid "about"
+msgstr ""
+
+#: .\views.py:146
+msgid "guest user"
+msgstr ""
+
+#: .\views.py:147
+msgid "exit"
+msgstr ""
+
+#: .\views.py:148
+msgid "explain"
+msgstr "pojasniti"
+
+#: .\views.py:149
+msgid "slow down"
+msgstr "usporiti"
+
+#: .\views.py:150
+msgid "give an example"
+msgstr "dopuniti primjerom"
+
+#: .\views.py:151
+msgid "I want to know more"
+msgstr "želim znati više"
+
+#: .\views.py:152
+msgid "I want to comment"
+msgstr "želim komentirati"
+
+#: .\views.py:153
+msgid "motivating"
+msgstr "poticajno"
+
+#: .\views.py:154
+msgid "or"
+msgstr ""
+
+#: .\views.py:155
+msgid "current language"
+msgstr ""
+
+#: .\views.py:156
+msgid "select the language"
+msgstr ""
+
+#: .\views.py:157
+msgid "get guest identity for the event"
+msgstr ""
+
+#: .\views.py:158
+msgid "get guest user id"
+msgstr ""
+
+#: .\views.py:159
+msgid "provide unverified identity data for the event"
 msgstr ""
 
 #: .\views.py:160
-msgid "a registered user already exists with the same email"
+msgid "send data"
+msgstr ""
+
+#: .\views.py:161
+msgid "leave guest identity"
+msgstr ""
+
+#: .\views.py:162
+msgid "leave"
+msgstr ""
+
+#: .\views.py:163
+msgid "event code"
+msgstr ""
+
+#: .\views.py:164
+msgid "enter here"
 msgstr ""
 
 #: .\views.py:165
-msgid "this email was already used with different first or last name"
+msgid "email address"
+msgstr ""
+
+#: .\views.py:166
+msgid "enter email address here"
+msgstr ""
+
+#: .\views.py:167
+msgid "first name"
+msgstr "ime"
+
+#: .\views.py:168
+msgid "enter first name here"
+msgstr ""
+
+#: .\views.py:169
+msgid "last name"
+msgstr "prezime"
+
+#: .\views.py:170
+msgid "enter last name here"
 msgstr ""
 
 #: .\views.py:171
+msgid "no event selected yet"
+msgstr ""
+
+#: .\views.py:176 .\views.py:241
+msgid "invalid request"
+msgstr ""
+
+#: .\views.py:222
+msgid "anonymous"
+msgstr "anonimni"
+
+#: .\views.py:223
+msgid "anonymous: not logged in"
+msgstr ""
+
+#: .\views.py:264
+msgid "a registered user already exists with the same email"
+msgstr ""
+
+#: .\views.py:269
+msgid "this email was already used with different first or last name"
+msgstr ""
+
+#: .\views.py:275
 msgid "no guest account currently available"
 msgstr ""
 
-#: .\views.py:237 .\views.py:283 .\views.py:336
+#: .\views.py:341 .\views.py:387 .\views.py:440
 msgid "user is unknown"
 msgstr ""
 
-#: .\views.py:241
+#: .\views.py:345
 msgid "user is not authorized"
 msgstr ""
 
-#: .\views.py:243
+#: .\views.py:347
 msgid "user email is invalid"
 msgstr ""
 
-#: .\views.py:248 .\views.py:291 .\views.py:344
+#: .\views.py:352 .\views.py:395 .\views.py:448
 msgid "event is unknown"
 msgstr ""
 
-#: .\views.py:258 .\views.py:300 .\views.py:353
+#: .\views.py:362 .\views.py:404 .\views.py:457
 msgid "event is not running"
 msgstr ""
