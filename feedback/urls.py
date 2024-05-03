@@ -13,7 +13,10 @@ urlpatterns = [
     path('validate/', views.validate_event, name="validate_event"),
     path('reaction/', views.reaction_message, name="reaction_message"),
     path('chat/', views.chat_message, name="chat_message"),
-    path('event_export_json/<int:event_id>/', views.event_export_json, name="event_export_json"),
+    path('event_actions_export_json/<int:event_id>/', views.event_actions_export_json, name="event_actions_export_json"),
+    path('event_actions_export_csv/<int:event_id>/', views.event_actions_export_csv, name="event_actions_export_csv"),
+    path('event_statements_export_json/<int:event_id>/', views.event_statements_export_json, name="event_statements_export_json"),
+    path('event_statements_export_csv/<int:event_id>/', views.event_statements_export_csv, name="event_statements_export_csv"),
     path('room_select/', views.room_select, name='room_select'),
     path('<str:room_name>/', views.chat_room, name='chat_room'),
 ]

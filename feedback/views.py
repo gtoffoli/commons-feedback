@@ -19,7 +19,9 @@ from commons.models import Project, get_calendar_events, get_event_project, is_s
 from commons.analytics import filter_actions
 from commons.tracking import track_action
 from commons.utils import private_code, unshuffle_integers
+
 from actstream.models import Action
+from xapi_client.track.xapi_statements import get_statements
 
 from feedback.producers import reaction_item_producer, chat_item_producer
 from feedback.utils import get_guest_account, get_fake_account
@@ -79,7 +81,6 @@ def feedback_dashboard(request, event_code):
     context['user_name'] = ''
     context['event_code'] = ''
     context['next_events'] = []
-    # ['word_array'] = json.dumps(word_array())
     context['word_array'] = word_array
     if request.user.is_anonymous:
         context['error'] =  _('not logged in')
@@ -87,7 +88,7 @@ def feedback_dashboard(request, event_code):
     assert event_code
     event_id, user_id = unshuffle_integers(event_code)
     if event_id and user_id and request.user.id == user_id:
-        # assert request.user.id == user_id
+        context['event_id'] = event_id
         user = User.objects.get(id=user_id)
         user_name = get_user_name(user)
         events = Event.objects.filter(id=event_id)
@@ -95,13 +96,16 @@ def feedback_dashboard(request, event_code):
             event = events[0]
             now = timezone.now()
             not_running = now < event.start or now > event.end
-            if (now > event.end) and \
-              Action.objects.filter(verb__in=['commented'], action_object_content_type=ContentType.objects.get_for_model(Event), action_object_object_id=event_id).count():
-                context['export_url'] = '/feedback/event_export_json/{}/'.format(event_id)
+            context['not_running'] = not_running
+            terminated = now > event.end
+            if terminated:
+                context['terminated'] = True
+                n_actions = Action.objects.filter(verb__in=['commented'], action_object_content_type=ContentType.objects.get_for_model(Event), action_object_object_id=event_id).count()
+                if n_actions:
+                    context['n_actions'] = n_actions
+                    context['export_url'] = '/feedback/event_export_json/{}/'.format(event_id)
             context.update(event_dict(event, user_id))
             context['user_name'] = user_name
-            # context['word_array'] = json.dumps(word_array()) 
-            context['not_running'] = not_running
             context['VUE'] = True
             return render(request, template, context)
     else:
@@ -525,7 +529,7 @@ export_template_json = """{
 },
 """
 
-def event_export_json(request, event_id):
+def event_actions_export_json(request, event_id):
     """ export comments to event (reactions and chat messages)
         as xAPI statements in JSON format """
     event = Event.objects.get(id=event_id)
@@ -545,10 +549,81 @@ def event_export_json(request, event_id):
         item = export_template_json % (action.id, action.timestamp, user.email, actor_name, response, event_id, event_title, event_description, project_id, project_name)
         item_list.append(item)
     item_list.reverse()
-    json = '[\n' + ',\n'.join(item_list) + '\n]'
-    filename = '{}.json'.format(slugify(event_title))
-    response = HttpResponse(json, 'application/json')
+    json_data = '[\n' + ',\n'.join(item_list) + '\n]'
+    filename = '{}.stream.json'.format(slugify(event_title))
+    response = HttpResponse(json_data, 'application/json')
     response['Content-Disposition'] = 'attachment; filename="{}"'.format(filename)
+    return response
+
+def event_statements_export_json(request, event_id):
+    event = Event.objects.get(id=event_id)
+    filename = '{}.xapi.json'.format(slugify(event.title))
+    query = {'activity': 'https://www.we-collab.eu/schedule/event/58/', 'verb': 'commented'}
+    success, statements = get_statements(query)
+    if success:
+        json_data = json.dumps(statements)
+    else:
+        json_data = '[]'
+    response = HttpResponse(json_data, 'application/json')
+    response['Content-Disposition'] = 'attachment; filename="{}"'.format(filename)
+    return response
+
+def event_actions(event_id):
+    event = Event.objects.get(id=event_id)
+    actions = Action.objects.filter(verb__in=['commented'], action_object_content_type=ContentType.objects.get_for_model(Event), action_object_object_id=event_id)
+    rows = []
+    for action in actions:
+        response = action.description
+        splitted = response.split(':', maxsplit=1)
+        message_type = splitted[0]
+        message = splitted[1]
+        if message_type == 'chat':
+            splitted = message.split(':')
+            message = ':'.join(splitted[3:]).strip()
+        rows.append([str(action.timestamp), action.actor.email, message_type, message])
+    return rows
+
+def event_statements(event_id):
+    query = {'activity': 'https://www.we-collab.eu/schedule/event/58/', 'verb': 'commented'}
+    success, statements = get_statements(query)
+    if not success:
+        return []
+    rows = []
+    for statement in statements:
+        response = statement['result']['response']
+        splitted = response.split(':', maxsplit=1)
+        message_type = splitted[0]
+        message = splitted[1]
+        if message_type == 'chat':
+            splitted = message.split(':')
+            message = ':'.join(splitted[3:]).strip()
+        rows.append([statement['timestamp'], statement['actor']['mbox'].replace('mailto:', ''), message_type, message])
+    return rows
+
+def set_excel_header(response, filename):
+    mimetype = 'application/vnd.ms-excel'
+    response['Content-Type'] = '%s; charset=utf-8' % mimetype
+    response['Content-Disposition'] = 'attachment; filename=%s.csv' % filename
+    return response
+
+def event_statements_export_csv(request, event_id):
+    event = Event.objects.get(id=event_id)
+    filename = '{}.xapi'.format(slugify(event.title))
+    statements = event_statements(event_id)
+    lines = ['\t'.join(statement) for statement in statements]
+    csv_data = '\n'.join(lines)
+    response = HttpResponse(csv_data)
+    response = set_excel_header(response, filename)
+    return response
+
+def event_actions_export_csv(request, event_id):
+    event = Event.objects.get(id=event_id)
+    filename = '{}.stream'.format(slugify(event.title))
+    actions = event_actions(event_id)
+    lines = ['\t'.join(action) for action in actions]
+    csv_data = '\n'.join(lines)
+    response = HttpResponse(csv_data)
+    response = set_excel_header(response, filename)
     return response
     
 # https://stackoverflow.com/questions/70159895/django-send-events-via-websocket-to-all-clients

@@ -73,6 +73,20 @@
 .vue-tag-cloud a { color: inherit; }
 .vue-tag-cloud a:hover { color: #0df; }
 .vue-tag-cloud a:hover { color: #0cf; }
+
+.center {
+  margin-left: auto;
+  margin-right: auto;
+}
+th, td {
+  padding: 5px;
+}
+button {
+  border-radius: 4px;
+  width: 10em;
+  font-size: larger;
+  cursor: pointer;
+}
 </style>
 {% endblock extra_style %}
 
@@ -84,11 +98,11 @@
 {% block nav_vue %}
   {% include "_header_bar.html" %}
   <div class="navbar">
-    <h3 class="text-center">{% trans "Student Feedback App" %} - {% trans "Event Dashboard" %}
+	<h2>{% trans "Student Feedback App" %} - {% trans "Event Dashboard" %}</h2>
+    <h3 class="text-center">
       <br><span style="font-size: smaller;">
         {% trans "project"|capfirst %}: {{ project_name }}</i> -
-        {% trans "event"|capfirst %}: <i>{% if export_url %}<a href="{{ export_url }}">{{ event_title }}</a>
-        							     {% else %}{{ event_title }}{% endif %}</i><br>
+        {% trans "event"|capfirst %}: <i>{{ event_title }}</i><br>
         {% if start_date and end_date %} 
     	        {% trans "time"|capfirst %}: <i>{{ start_date }}</i> - <i>{{ end_date }}</i>
         {% endif %}
@@ -100,6 +114,28 @@
 {% endblock nav_vue %}
 
 {% block body_base %}
+{% if terminated %}
+  <div style="text-align: center; margin-top: 3em;">
+    <div><b>{% trans "the event has ended"|capfirst %}</b></div>
+    {% if n_actions %}
+      <h3>{% trans "download data"|capfirst %}<h3>
+      	<table class="center" style="padding: 5px;">
+		  <thead><th></th><th>in xAPI format</th><th>in CSV format</th></thead>
+		  <tbody>
+	        <tr><th>{% trans "from the Learning Record Store" %}</th>
+				<td><button onclick="document.location='/feedback/event_statements_export_json/{{ event_id }}/'">xAPI - JSON</button>
+	        	<td><button onclick="document.location='/feedback/event_statements_export_csv/{{ event_id }}/'">xAPI - CSV</button></td></tr>
+	        <tr><th>{% trans "from the Activity Stream of CS" %}</th>
+				<td><button onclick="document.location='/feedback/event_actions_export_json/{{ event_id }}/'">Stream - JSON</button>
+				<td><button onclick="document.location='/feedback/event_actions_export_csv/{{ event_id }}/'">Stream - CSV</button></td></tr>
+          </tbody>
+        </table>
+    {% else %}
+      <div><b>{% trans "no data are available"|capfirst %}</b></div>
+    {% endif %}  
+  </div>
+
+{% else %}
   <div class="container-fluid">
     <div id="app" class='components-container'>
 {% verbatim %}
@@ -126,6 +162,7 @@
 {% endverbatim %}
     </div>
   </div>
+{% endif %}
 {% endblock %}
 
 {% block script_base %}
