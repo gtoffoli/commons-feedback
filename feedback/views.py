@@ -558,7 +558,8 @@ def event_actions_export_json(request, event_id):
 def event_statements_export_json(request, event_id):
     event = Event.objects.get(id=event_id)
     filename = '{}.xapi.json'.format(slugify(event.title))
-    query = {'activity': 'https://www.we-collab.eu/schedule/event/58/', 'verb': 'commented'}
+    object_id = 'https://www.we-collab.eu/schedule/event/{}/'.format(event_id)
+    query = {'activity': object_id, 'verb': 'commented'}
     success, statements = get_statements(query)
     if success:
         json_data = json.dumps(statements)
@@ -584,7 +585,8 @@ def event_actions(event_id):
     return rows
 
 def event_statements(event_id):
-    query = {'activity': 'https://www.we-collab.eu/schedule/event/58/', 'verb': 'commented'}
+    object_id = 'https://www.we-collab.eu/schedule/event/{}/'.format(event_id)
+    query = {'activity': object_id, 'verb': 'commented'}
     success, statements = get_statements(query)
     if not success:
         return []
